@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>개발자 변환 도구 - JSON · ASCII · 진수 · URL · QR · Unicode</title>
-<!-- QR 라이브러리: 생성용 (qrcode-generator), 디코딩용 (jsQR) -->
+<title>개발자 변환 도구 - JSON · ASCII · 진수 · URL · QR · Unicode · Base64</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
@@ -30,258 +29,93 @@
     min-height: 100vh;
     line-height: 1.5;
   }
-  header {
-    padding: 28px 24px 16px;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
-  }
+  header { padding: 28px 24px 16px; text-align: center; border-bottom: 1px solid var(--border); }
   header h1 {
-    margin: 0 0 6px;
-    font-size: 1.8rem;
+    margin: 0 0 6px; font-size: 1.8rem;
     background: linear-gradient(135deg, #38bdf8, #a78bfa);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   header p { margin: 0; color: var(--muted); font-size: 0.95rem; }
-
-  .tabs {
-    display: flex;
-    gap: 4px;
-    padding: 16px 24px 0;
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-  }
+  .tabs { display: flex; gap: 4px; padding: 16px 24px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab {
-    background: transparent;
-    color: var(--muted);
-    border: none;
-    padding: 10px 18px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    border-radius: 8px 8px 0 0;
-    transition: all 0.15s;
-    font-weight: 500;
+    background: transparent; color: var(--muted); border: none;
+    padding: 10px 18px; cursor: pointer; font-size: 0.95rem;
+    border-radius: 8px 8px 0 0; transition: all 0.15s; font-weight: 500;
   }
   .tab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-  .tab.active {
-    color: var(--accent);
-    background: var(--panel);
-    border-bottom: 2px solid var(--accent);
-  }
-
+  .tab.active { color: var(--accent); background: var(--panel); border-bottom: 2px solid var(--accent); }
   main { padding: 24px; max-width: 1200px; margin: 0 auto; }
   .panel { display: none; }
   .panel.active { display: block; }
-
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  @media (max-width: 768px) {
-    .grid-2 { grid-template-columns: 1fr; }
-  }
-
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-  }
-  .card h3 {
-    margin: 0 0 12px;
-    font-size: 1rem;
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h3 { margin: 0 0 12px; font-size: 1rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
   .card h3 .badge {
-    font-size: 0.75rem;
-    background: var(--panel-2);
-    color: var(--muted);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: normal;
+    font-size: 0.75rem; background: var(--panel-2); color: var(--muted);
+    padding: 2px 8px; border-radius: 4px; font-weight: normal;
   }
-
   textarea, input[type="text"], input[type="number"], select {
-    width: 100%;
-    background: #0f172a;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-family: "Cascadia Code", "Consolas", "D2Coding", monospace;
-    font-size: 0.9rem;
-    resize: vertical;
+    width: 100%; background: #0f172a; color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px;
+    font-family: "Cascadia Code", "Consolas", "D2Coding", monospace; font-size: 0.9rem; resize: vertical;
   }
   textarea { min-height: 140px; }
   textarea:focus, input:focus, select:focus {
-    outline: none;
-    border-color: var(--accent);
+    outline: none; border-color: var(--accent);
     box-shadow: 0 0 0 2px rgba(56,189,248,0.2);
   }
-
-  .btn-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   button.action {
-    background: var(--accent);
-    color: #0f172a;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: background 0.15s;
+    background: var(--accent); color: #0f172a; border: none;
+    padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    font-weight: 600; font-size: 0.9rem; transition: background 0.15s;
   }
   button.action:hover { background: var(--accent-hover); }
-  button.secondary {
-    background: var(--panel-2);
-    color: var(--text);
-  }
+  button.secondary { background: var(--panel-2); color: var(--text); }
   button.secondary:hover { background: #475569; }
-
-  .status {
-    margin-top: 8px;
-    font-size: 0.85rem;
-    min-height: 18px;
-  }
+  .status { margin-top: 8px; font-size: 0.85rem; min-height: 18px; }
   .status.ok { color: var(--success); }
   .status.err { color: var(--error); }
-
-  /* ASCII */
-  .ascii-input-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  @media (max-width: 640px) {
-    .ascii-input-row { grid-template-columns: 1fr; }
-  }
-  .ascii-table-wrap {
-    max-height: 480px;
-    overflow: auto;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-  }
-  table.ascii {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: "Cascadia Code", "Consolas", monospace;
-    font-size: 0.85rem;
-  }
-  table.ascii th, table.ascii td {
-    padding: 6px 10px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-  table.ascii th {
-    background: var(--panel-2);
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    color: var(--accent);
-  }
+  .ascii-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 640px) { .ascii-input-row { grid-template-columns: 1fr; } }
+  .ascii-table-wrap { max-height: 480px; overflow: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table.ascii { width: 100%; border-collapse: collapse; font-family: "Cascadia Code", "Consolas", monospace; font-size: 0.85rem; }
+  table.ascii th, table.ascii td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  table.ascii th { background: var(--panel-2); position: sticky; top: 0; z-index: 1; color: var(--accent); }
   table.ascii tr:hover { background: rgba(56,189,248,0.06); }
   .char-cell { font-weight: 600; color: var(--warn); }
-
-  /* Number base */
-  .base-grid {
-    display: grid;
-    grid-template-columns: 100px 1fr;
-    gap: 10px 12px;
-    align-items: center;
-  }
-  .base-grid label {
-    color: var(--muted);
-    font-size: 0.9rem;
-    text-align: right;
-  }
-
-  /* QR */
+  .base-grid { display: grid; grid-template-columns: 100px 1fr; gap: 10px 12px; align-items: center; }
+  .base-grid label { color: var(--muted); font-size: 0.9rem; text-align: right; }
   .qr-display {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: white;
-    border-radius: 8px;
-    padding: 16px;
-    min-height: 200px;
+    display: flex; justify-content: center; align-items: center;
+    background: white; border-radius: 8px; padding: 16px; min-height: 200px;
   }
   .qr-display canvas, .qr-display img { max-width: 100%; height: auto; image-rendering: pixelated; }
   .qr-drop {
-    border: 2px dashed var(--border);
-    border-radius: 8px;
-    padding: 24px;
-    text-align: center;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
+    border: 2px dashed var(--border); border-radius: 8px;
+    padding: 24px; text-align: center; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
   }
   .qr-drop:hover, .qr-drop.dragover {
-    border-color: var(--accent);
-    background: rgba(56,189,248,0.05);
-    color: var(--text);
+    border-color: var(--accent); background: rgba(56,189,248,0.05); color: var(--text);
   }
-  .qr-preview {
-    margin-top: 12px;
-    max-height: 240px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    display: none;
-  }
-
-  .hint {
-    color: var(--muted);
-    font-size: 0.85rem;
-    margin-top: 8px;
-  }
+  .qr-preview { margin-top: 12px; max-height: 240px; border-radius: 6px; border: 1px solid var(--border); display: none; }
+  .hint { color: var(--muted); font-size: 0.85rem; margin-top: 8px; }
   .copy-btn {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    padding: 4px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    margin-left: 8px;
+    background: transparent; color: var(--muted); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 4px; cursor: pointer;
+    font-size: 0.8rem; margin-left: 8px;
   }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
-
-  /* Unicode table */
-  .uni-row {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    gap: 8px 12px;
-    align-items: center;
-    margin-bottom: 6px;
-    font-family: "Cascadia Code", monospace;
-    font-size: 0.85rem;
-  }
-  .uni-row label { color: var(--muted); text-align: right; }
-  .uni-row span { color: var(--text); word-break: break-all; }
-
-  footer {
-    text-align: center;
-    padding: 24px;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
+  footer { text-align: center; padding: 24px; color: var(--muted); font-size: 0.85rem; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>🛠 개발자 변환 도구</h1>
-  <p>JSON · ASCII · 진수 · URL · QR · Unicode</p>
+  <p>JSON · ASCII · 진수 · URL · QR · Unicode · Base64</p>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -296,7 +130,7 @@
 
 <main>
 
-  <!-- =================== JSON =================== -->
+  <!-- JSON -->
   <section class="panel active" id="panel-json">
     <div class="grid-2">
       <div class="card">
@@ -323,7 +157,7 @@
     </div>
   </section>
 
-  <!-- =================== ASCII =================== -->
+  <!-- ASCII -->
   <section class="panel" id="panel-ascii">
     <div class="card" style="margin-bottom:16px;">
       <h3>텍스트 ↔ ASCII 코드</h3>
@@ -340,24 +174,19 @@
         </div>
       </div>
     </div>
-
     <div class="card">
       <h3>ASCII 표 (0–127) <span class="badge">검색 가능</span></h3>
       <input type="text" id="asciiFilter" placeholder="문자, 코드, 이름으로 검색 (예: A, 65, 0x41, SPACE)" oninput="renderAsciiTable()" style="margin-bottom:10px;" />
       <div class="ascii-table-wrap">
         <table class="ascii" id="asciiTable">
-          <thead>
-            <tr>
-              <th>Dec</th><th>Hex</th><th>Oct</th><th>Bin</th><th>문자</th><th>설명</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Dec</th><th>Hex</th><th>Oct</th><th>Bin</th><th>문자</th><th>설명</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
   </section>
 
-  <!-- =================== BASE =================== -->
+  <!-- BASE -->
   <section class="panel" id="panel-base">
     <div class="grid-2">
       <div class="card">
@@ -365,13 +194,10 @@
         <div class="base-grid">
           <label for="baseBin">2진수</label>
           <input type="text" id="baseBin" placeholder="1010 또는 0b1010" oninput="convertBase('bin')" />
-
           <label for="baseOct">8진수</label>
           <input type="text" id="baseOct" placeholder="12 또는 0o12" oninput="convertBase('oct')" />
-
           <label for="baseDec">10진수</label>
           <input type="text" id="baseDec" placeholder="10" oninput="convertBase('dec')" />
-
           <label for="baseHex">16진수</label>
           <input type="text" id="baseHex" placeholder="A 또는 0xA" oninput="convertBase('hex')" />
         </div>
@@ -380,7 +206,6 @@
         </div>
         <div id="baseStatus" class="status"></div>
       </div>
-
       <div class="card">
         <h3>일괄 변환 (문자열 → 진수 표기)</h3>
         <input type="text" id="bulkInput" placeholder="텍스트 또는 숫자 입력" oninput="bulkConvert()" />
@@ -395,7 +220,7 @@
     </div>
   </section>
 
-  <!-- =================== URL =================== -->
+  <!-- URL -->
   <section class="panel" id="panel-url">
     <div class="grid-2">
       <div class="card">
@@ -409,26 +234,22 @@
         </div>
         <div id="urlStatus" class="status"></div>
         <p class="hint">
-          · <b>encodeURIComponent</b>: `/ ? & =` 같은 문자도 모두 인코딩 (쿼리 값에 적합)<br>
+          · <b>encodeURIComponent</b>: / ? &amp; = 같은 문자도 모두 인코딩 (쿼리 값에 적합)<br>
           · <b>encodeURI</b>: URL 구조 문자는 그대로 (전체 URL에 적합)
         </p>
       </div>
-
       <div class="card">
         <h3>결과 <button class="copy-btn" onclick="copyText('urlOutput')">복사</button></h3>
         <textarea id="urlOutput" readonly></textarea>
-
         <h3 style="margin-top:18px;">URL 파서</h3>
         <div id="urlParseOut" style="font-family: 'Cascadia Code', monospace; font-size:0.85rem;"></div>
       </div>
     </div>
   </section>
 
-  <!-- =================== QR =================== -->
+  <!-- QR -->
   <section class="panel" id="panel-qr">
     <div class="grid-2">
-
-      <!-- QR Generate -->
       <div class="card">
         <h3>QR 코드 생성</h3>
         <textarea id="qrText" placeholder="QR로 만들 텍스트나 URL을 입력하세요" oninput="generateQR()"></textarea>
@@ -456,8 +277,6 @@
           <span style="color:#666;">텍스트를 입력하면 QR이 표시됩니다</span>
         </div>
       </div>
-
-      <!-- QR Decode -->
       <div class="card">
         <h3>QR 코드 읽기 (이미지)</h3>
         <div class="qr-drop" id="qrDrop" onclick="document.getElementById('qrFile').click()">
@@ -467,7 +286,6 @@
         </div>
         <input type="file" id="qrFile" accept="image/*" style="display:none;" />
         <img id="qrPreview" class="qr-preview" alt="preview" />
-
         <div style="margin-top:12px;">
           <label style="color:var(--muted);font-size:0.85rem;">디코딩 결과 <button class="copy-btn" onclick="copyText('qrDecoded')">복사</button></label>
           <textarea id="qrDecoded" readonly placeholder="이미지를 업로드하면 결과가 표시됩니다"></textarea>
@@ -477,7 +295,7 @@
     </div>
   </section>
 
-  <!-- =================== UNICODE =================== -->
+  <!-- UNICODE -->
   <section class="panel" id="panel-unicode">
     <div class="grid-2">
       <div class="card">
@@ -492,7 +310,6 @@
         <div id="uniTextStatus" class="status"></div>
         <textarea id="uniTextOut" readonly style="margin-top:10px;"></textarea>
       </div>
-
       <div class="card">
         <h3>Unicode 코드 → 문자</h3>
         <textarea id="uniCode" placeholder="예) \uC548\uB155&#10;또는 U+C548 U+B155&#10;또는 &amp;#xC548;&amp;#xB155;&#10;또는 0xC548 0xB155" oninput="unicodeToText()"></textarea>
@@ -500,7 +317,6 @@
         <textarea id="uniCodeOut" readonly style="margin-top:10px;"></textarea>
       </div>
     </div>
-
     <div class="card" style="margin-top:16px;">
       <h3>문자별 상세 정보</h3>
       <input type="text" id="uniDetailInput" placeholder="문자 하나 또는 여러 개 입력" oninput="unicodeDetail()" />
@@ -508,65 +324,66 @@
     </div>
   </section>
 
-  <!-- =================== BASE64 =================== -->
+  <!-- BASE64 -->
   <section class="panel" id="panel-base64">
     <div class="grid-2">
       <div class="card">
-        <h3>?띿뒪??Base64 ?몄퐫??/ ?붿퐫??/h3>
-        <textarea id="b64Input" placeholder="?띿뒪?몃? ?낅젰?섏꽭??(UTF-8 湲곗?)&#10;?? ?덈뀞?섏꽭??Hello ?뙚" oninput="autoBase64()"></textarea>
+        <h3>텍스트 Base64 인코딩 / 디코딩</h3>
+        <textarea id="b64Input" placeholder="텍스트를 입력하세요 (UTF-8 기준)&#10;예) 안녕하세요 Hello 🌟" oninput="autoBase64()"></textarea>
         <div class="btn-row">
-          <button class="action" onclick="encodeBase64()">?몄퐫????/button>
-          <button class="action" onclick="decodeBase64()">???붿퐫??/button>
-          <button class="action" onclick="encodeBase64Url()">URL-safe ?몄퐫??/button>
-          <button class="secondary" onclick="clearBase64()">吏?곌린</button>
+          <button class="action" onclick="encodeBase64()">인코딩 →</button>
+          <button class="action" onclick="decodeBase64()">← 디코딩</button>
+          <button class="action" onclick="encodeBase64Url()">URL-safe 인코딩</button>
+          <button class="secondary" onclick="clearBase64()">지우기</button>
         </div>
         <div id="b64Status" class="status"></div>
         <p class="hint">
-          쨌 <b>?쒖? Base64</b>: <code>A-Z a-z 0-9 + / =</code><br>
-          쨌 <b>URL-safe Base64</b>: <code>+ ??-</code>, <code>/ ??_</code>, padding ?쒓굅 (JWT ?깆뿉???ъ슜)<br>
-          쨌 ?먮룞 蹂?? Base64 ?⑦꽩?대㈃ ?붿퐫?? ?꾨땲硫??몄퐫??        </p>
+          · <b>표준 Base64</b>: <code>A-Z a-z 0-9 + / =</code><br>
+          · <b>URL-safe Base64</b>: <code>+ → -</code>, <code>/ → _</code>, padding 제거 (JWT 등에서 사용)<br>
+          · 자동 변환: Base64 패턴이면 디코딩, 아니면 인코딩
+        </p>
       </div>
       <div class="card">
-        <h3>寃곌낵 <button class="copy-btn" onclick="copyText('b64Output')">蹂듭궗</button></h3>
+        <h3>결과 <button class="copy-btn" onclick="copyText('b64Output')">복사</button></h3>
         <textarea id="b64Output" readonly></textarea>
         <div id="b64Info" class="hint" style="margin-top:8px;"></div>
       </div>
     </div>
 
     <div class="card" style="margin-top:16px;">
-      <h3>?뚯씪 ??Base64 (Data URL)</h3>
+      <h3>파일 ↔ Base64 (Data URL)</h3>
       <div class="grid-2">
         <div>
-          <label style="color:var(--muted);font-size:0.85rem;">?뚯씪 ??Base64</label>
+          <label style="color:var(--muted);font-size:0.85rem;">파일 → Base64</label>
           <div class="qr-drop" id="b64Drop" onclick="document.getElementById('b64File').click()" style="margin-top:6px;">
-            ?뱚 ?대┃?댁꽌 ?뚯씪 ?좏깮<br>
-            ?먮뒗 ?뚯뼱???볤린<br>
-            <span style="font-size:0.8rem;">(?대?吏/臾몄꽌/?꾩쓽???뚯씪)</span>
+            📁 클릭해서 파일 선택<br>
+            또는 끌어다 놓기<br>
+            <span style="font-size:0.8rem;">(이미지/문서/임의의 파일)</span>
           </div>
           <input type="file" id="b64File" style="display:none;" />
           <div id="b64FileInfo" class="hint" style="margin-top:8px;"></div>
-          <textarea id="b64FileOutput" readonly placeholder="?뚯씪???낅줈?쒗븯硫?Base64 寃곌낵媛 ?쒖떆?⑸땲?? style="margin-top:8px;min-height:140px;"></textarea>
+          <textarea id="b64FileOutput" readonly placeholder="파일을 업로드하면 Base64 결과가 표시됩니다" style="margin-top:8px;min-height:140px;"></textarea>
           <div class="btn-row">
-            <button class="action" onclick="copyText('b64FileOutput')">寃곌낵 蹂듭궗</button>
-            <button class="action" onclick="copyB64DataUrl()">Data URL濡?蹂듭궗</button>
+            <button class="action" onclick="copyText('b64FileOutput')">결과 복사</button>
+            <button class="action" onclick="copyB64DataUrl()">Data URL로 복사</button>
           </div>
         </div>
         <div>
-          <label style="color:var(--muted);font-size:0.85rem;">Base64 ???뚯씪 ?ㅼ슫濡쒕뱶</label>
-          <textarea id="b64DecodeInput" placeholder="Base64 ?먮뒗 data:... URL??遺숈뿬?ｌ쑝?몄슂" style="margin-top:6px;min-height:140px;"></textarea>
+          <label style="color:var(--muted);font-size:0.85rem;">Base64 → 파일 다운로드</label>
+          <textarea id="b64DecodeInput" placeholder="Base64 또는 data:... URL을 붙여넣으세요" style="margin-top:6px;min-height:140px;"></textarea>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
             <div>
-              <label style="color:var(--muted);font-size:0.8rem;">?뚯씪紐?/label>
+              <label style="color:var(--muted);font-size:0.8rem;">파일명</label>
               <input type="text" id="b64DlName" value="decoded.bin" />
             </div>
             <div>
-              <label style="color:var(--muted);font-size:0.8rem;">MIME ???(?좏깮)</label>
-              <input type="text" id="b64DlMime" placeholder="?먮룞 媛먯?" />
+              <label style="color:var(--muted);font-size:0.8rem;">MIME 타입 (선택)</label>
+              <input type="text" id="b64DlMime" placeholder="자동 감지" />
             </div>
           </div>
           <div class="btn-row">
-            <button class="action" onclick="downloadFromBase64()">?뚯씪濡??ㅼ슫濡쒕뱶</button>
-            <button class="action" onclick="previewBase64Image()">?대?吏 誘몃━蹂닿린</button>
+            <button class="action" onclick="downloadFromBase64()">파일로 다운로드</button>
+            <button class="action" onclick="previewBase64Image()">이미지 미리보기</button>
           </div>
           <div id="b64DecodeStatus" class="status"></div>
           <img id="b64ImagePreview" style="max-width:100%;margin-top:10px;display:none;border-radius:6px;border:1px solid var(--border);" />
@@ -829,7 +646,6 @@ function autoUrlConvert() {
     document.getElementById('urlParseOut').innerHTML = '';
     return;
   }
-  // 자동 추측: %가 있으면 디코드, 없으면 인코드
   try {
     if (/%[0-9A-Fa-f]{2}/.test(v)) {
       document.getElementById('urlOutput').value = decodeURIComponent(v);
@@ -897,7 +713,6 @@ function generateQR() {
 function downloadQR() {
   const img = document.querySelector('#qrDisplay img');
   if (!img) return setStatus('qrStatus', '먼저 QR을 생성하세요.', false);
-  // Create canvas to convert to PNG
   const canvas = document.createElement('canvas');
   const tmpImg = new Image();
   tmpImg.onload = () => {
@@ -936,9 +751,7 @@ function handleQRImage(file) {
       const preview = document.getElementById('qrPreview');
       preview.src = e.target.result;
       preview.style.display = 'block';
-
       const canvas = document.createElement('canvas');
-      // 너무 큰 이미지는 축소 (성능)
       const maxSize = 1200;
       let w = img.width, h = img.height;
       if (Math.max(w, h) > maxSize) {
@@ -951,7 +764,6 @@ function handleQRImage(file) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
       const imageData = ctx.getImageData(0, 0, w, h);
-
       const code = jsQR(imageData.data, w, h, { inversionAttempts: 'attemptBoth' });
       if (code) {
         document.getElementById('qrDecoded').value = code.data;
@@ -978,9 +790,7 @@ const qrDrop = document.getElementById('qrDrop');
 qrDrop.addEventListener('drop', e => {
   if (e.dataTransfer.files[0]) handleQRImage(e.dataTransfer.files[0]);
 });
-// 붙여넣기 지원
 document.addEventListener('paste', (e) => {
-  // QR 탭이 활성일 때만
   if (!document.getElementById('panel-qr').classList.contains('active')) return;
   const items = e.clipboardData?.items;
   if (!items) return;
@@ -999,14 +809,11 @@ function textToUnicode(format) {
   if (!txt) { document.getElementById('uniTextOut').value = ''; return; }
   format = format || window._lastUniFormat || 'utf16';
   window._lastUniFormat = format;
-
   let out = '';
   if (format === 'utf16') {
-    // surrogate pairs as \uXXXX\uXXXX
     for (const ch of txt) {
       const code = ch.codePointAt(0);
       if (code > 0xFFFF) {
-        // encode as surrogate pair
         const high = 0xD800 + ((code - 0x10000) >> 10);
         const low = 0xDC00 + ((code - 0x10000) & 0x3FF);
         out += '\\u' + high.toString(16).toUpperCase().padStart(4,'0') + '\\u' + low.toString(16).toUpperCase().padStart(4,'0');
@@ -1032,36 +839,26 @@ function textToUnicode(format) {
   document.getElementById('uniTextOut').value = out;
   setStatus('uniTextStatus', `✓ 형식: ${format.toUpperCase()}`, true);
 }
-
 function unicodeToText() {
   const raw = document.getElementById('uniCode').value;
   if (!raw) { document.getElementById('uniCodeOut').value = ''; return; }
   try {
-    let result = '';
-    // \u{XXXX} 형식
     let s = raw.replace(/\\u\{([0-9a-fA-F]+)\}/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
-    // \uXXXX 형식 (서로게이트 자동 처리 - JSON.parse 사용)
     if (/\\u[0-9a-fA-F]{4}/.test(s)) {
       try {
         s = JSON.parse('"' + s.replace(/"/g, '\\"').replace(/\n/g,'\\n') + '"');
       } catch { /* fallback below */ }
     }
-    // U+XXXX 형식
     s = s.replace(/U\+([0-9a-fA-F]+)/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
-    // &#xXXXX; HTML hex
     s = s.replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
-    // &#XXX; HTML dec
     s = s.replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)));
-    // 단독 0xXXXX
     s = s.replace(/\b0x([0-9a-fA-F]+)\b/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
-
     document.getElementById('uniCodeOut').value = s;
     setStatus('uniCodeStatus', '✓ 변환 완료', true);
   } catch (e) {
     setStatus('uniCodeStatus', '✗ ' + e.message, false);
   }
 }
-
 function unicodeDetail() {
   const txt = document.getElementById('uniDetailInput').value;
   if (!txt) { document.getElementById('uniDetailOut').innerHTML = ''; return; }
@@ -1093,14 +890,12 @@ function unicodeDetail() {
 
 /* ===== Base64 ===== */
 function strToBase64(str) {
-  // UTF-8 safe encode
   const bytes = new TextEncoder().encode(str);
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin);
 }
 function base64ToStr(b64) {
-  // Accept URL-safe and add padding
   let s = b64.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
   while (s.length % 4) s += '=';
   const bin = atob(s);
@@ -1110,33 +905,33 @@ function base64ToStr(b64) {
 }
 function encodeBase64() {
   const v = document.getElementById('b64Input').value;
-  if (!v) return setStatus('b64Status', '?낅젰??鍮꾩뼱?덉뒿?덈떎.', false);
+  if (!v) return setStatus('b64Status', '입력이 비어있습니다.', false);
   try {
     const out = strToBase64(v);
     document.getElementById('b64Output').value = out;
-    document.getElementById('b64Info').textContent = `?먮낯 ${new TextEncoder().encode(v).length} bytes ??Base64 ${out.length} chars`;
-    setStatus('b64Status', '???몄퐫???꾨즺', true);
-  } catch (e) { setStatus('b64Status', '??' + e.message, false); }
+    document.getElementById('b64Info').textContent = `원본 ${new TextEncoder().encode(v).length} bytes → Base64 ${out.length} chars`;
+    setStatus('b64Status', '✓ 인코딩 완료', true);
+  } catch (e) { setStatus('b64Status', '✗ ' + e.message, false); }
 }
 function encodeBase64Url() {
   const v = document.getElementById('b64Input').value;
-  if (!v) return setStatus('b64Status', '?낅젰??鍮꾩뼱?덉뒿?덈떎.', false);
+  if (!v) return setStatus('b64Status', '입력이 비어있습니다.', false);
   try {
     const out = strToBase64(v).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     document.getElementById('b64Output').value = out;
     document.getElementById('b64Info').textContent = `URL-safe Base64 (${out.length} chars, no padding)`;
-    setStatus('b64Status', '??URL-safe ?몄퐫???꾨즺', true);
-  } catch (e) { setStatus('b64Status', '??' + e.message, false); }
+    setStatus('b64Status', '✓ URL-safe 인코딩 완료', true);
+  } catch (e) { setStatus('b64Status', '✗ ' + e.message, false); }
 }
 function decodeBase64() {
   const v = document.getElementById('b64Input').value.trim();
-  if (!v) return setStatus('b64Status', '?낅젰??鍮꾩뼱?덉뒿?덈떎.', false);
+  if (!v) return setStatus('b64Status', '입력이 비어있습니다.', false);
   try {
     const out = base64ToStr(v);
     document.getElementById('b64Output').value = out;
-    document.getElementById('b64Info').textContent = `Base64 ${v.length} chars ??${out.length} chars`;
-    setStatus('b64Status', '???붿퐫???꾨즺', true);
-  } catch (e) { setStatus('b64Status', '???섎せ??Base64 ?뺤떇: ' + e.message, false); }
+    document.getElementById('b64Info').textContent = `Base64 ${v.length} chars → ${out.length} chars`;
+    setStatus('b64Status', '✓ 디코딩 완료', true);
+  } catch (e) { setStatus('b64Status', '✗ 잘못된 Base64 형식: ' + e.message, false); }
 }
 function autoBase64() {
   const v = document.getElementById('b64Input').value.trim();
@@ -1145,20 +940,19 @@ function autoBase64() {
     document.getElementById('b64Info').textContent = '';
     return;
   }
-  // ?대━?ㅽ떛: ??以?+ Base64 臾몄옄留?+ 湲몄씠媛 4??諛곗닔??媛源뚯? ???붿퐫??  const isB64Like = /^[A-Za-z0-9+/_\-=\s]+$/.test(v) && v.length >= 4;
+  const isB64Like = /^[A-Za-z0-9+/_\-=\s]+$/.test(v) && v.length >= 4;
   try {
     if (isB64Like) {
       const out = base64ToStr(v);
-      // 異쒕젰???덈Т 源⑥?硫??몄퐫?⑹쑝濡??대갚
       if (out && !/\uFFFD/.test(out.slice(0, 50))) {
         document.getElementById('b64Output').value = out;
-        document.getElementById('b64Info').textContent = `?먮룞 媛먯?: ?붿퐫??(${v.length} chars ??${out.length} chars)`;
+        document.getElementById('b64Info').textContent = `자동 감지: 디코딩 (${v.length} chars → ${out.length} chars)`;
         return;
       }
     }
     const enc = strToBase64(v);
     document.getElementById('b64Output').value = enc;
-    document.getElementById('b64Info').textContent = `?먮룞 媛먯?: ?몄퐫??(${new TextEncoder().encode(v).length} bytes ??${enc.length} chars)`;
+    document.getElementById('b64Info').textContent = `자동 감지: 인코딩 (${new TextEncoder().encode(v).length} bytes → ${enc.length} chars)`;
   } catch {
     document.getElementById('b64Output').value = '';
     document.getElementById('b64Info').textContent = '';
@@ -1171,24 +965,22 @@ function clearBase64() {
   setStatus('b64Status', '', true);
 }
 
-/* ----- File <-> Base64 ----- */
 let _b64File = { name: '', mime: '', b64: '' };
 function handleB64File(file) {
   if (!file) return;
   if (file.size > 50 * 1024 * 1024) {
-    document.getElementById('b64FileInfo').innerHTML = '<span style="color:var(--error);">???뚯씪???덈Т ?쎈땲??(50MB ?쒗븳)</span>';
+    document.getElementById('b64FileInfo').innerHTML = '<span style="color:var(--error);">✗ 파일이 너무 큽니다 (50MB 제한)</span>';
     return;
   }
   const reader = new FileReader();
   reader.onload = (e) => {
-    // result is data:...;base64,XXXX
     const url = e.target.result;
     const m = url.match(/^data:([^;]+);base64,(.+)$/);
-    if (!m) { document.getElementById('b64FileInfo').textContent = '?쎄린 ?ㅽ뙣'; return; }
+    if (!m) { document.getElementById('b64FileInfo').textContent = '읽기 실패'; return; }
     _b64File = { name: file.name, mime: m[1], b64: m[2] };
     document.getElementById('b64FileOutput').value = m[2];
     document.getElementById('b64FileInfo').innerHTML =
-      `??<b>${escapeHtml(file.name)}</b> 쨌 ${file.type || 'unknown'} 쨌 ${(file.size/1024).toFixed(1)} KB ??Base64 ${m[2].length} chars`;
+      `✓ <b>${escapeHtml(file.name)}</b> · ${file.type || 'unknown'} · ${(file.size/1024).toFixed(1)} KB → Base64 ${m[2].length} chars`;
   };
   reader.readAsDataURL(file);
 }
@@ -1206,10 +998,10 @@ b64Drop.addEventListener('drop', e => {
   if (e.dataTransfer.files[0]) handleB64File(e.dataTransfer.files[0]);
 });
 function copyB64DataUrl() {
-  if (!_b64File.b64) return setStatus('b64Status', '癒쇱? ?뚯씪???낅줈?쒗븯?몄슂.', false);
+  if (!_b64File.b64) return setStatus('b64Status', '먼저 파일을 업로드하세요.', false);
   const url = `data:${_b64File.mime};base64,${_b64File.b64}`;
   navigator.clipboard.writeText(url).then(() => {
-    setStatus('b64Status', '??Data URL???대┰蹂대뱶??蹂듭궗?섏뿀?듬땲??', true);
+    setStatus('b64Status', '✓ Data URL이 클립보드에 복사되었습니다.', true);
   });
 }
 
@@ -1229,7 +1021,7 @@ function parseB64Input(raw) {
 }
 function downloadFromBase64() {
   const raw = document.getElementById('b64DecodeInput').value;
-  if (!raw.trim()) return setStatus('b64DecodeStatus', '?낅젰??鍮꾩뼱?덉뒿?덈떎.', false);
+  if (!raw.trim()) return setStatus('b64DecodeStatus', '입력이 비어있습니다.', false);
   try {
     const parsed = parseB64Input(raw);
     const bytes = b64ToBytes(parsed.b64);
@@ -1242,24 +1034,24 @@ function downloadFromBase64() {
     a.download = name;
     a.click();
     URL.revokeObjectURL(url);
-    setStatus('b64DecodeStatus', `??${name} ?ㅼ슫濡쒕뱶 (${bytes.length} bytes, ${mime})`, true);
+    setStatus('b64DecodeStatus', `✓ ${name} 다운로드 (${bytes.length} bytes, ${mime})`, true);
   } catch (e) {
-    setStatus('b64DecodeStatus', '??' + e.message, false);
+    setStatus('b64DecodeStatus', '✗ ' + e.message, false);
   }
 }
 function previewBase64Image() {
   const raw = document.getElementById('b64DecodeInput').value;
-  if (!raw.trim()) return setStatus('b64DecodeStatus', '?낅젰??鍮꾩뼱?덉뒿?덈떎.', false);
+  if (!raw.trim()) return setStatus('b64DecodeStatus', '입력이 비어있습니다.', false);
   try {
     const parsed = parseB64Input(raw);
     const mime = parsed.mime || 'image/png';
     const img = document.getElementById('b64ImagePreview');
     img.src = `data:${mime};base64,${parsed.b64}`;
     img.style.display = 'block';
-    img.onload = () => setStatus('b64DecodeStatus', `??誘몃━蹂닿린 (${img.naturalWidth}횞${img.naturalHeight})`, true);
-    img.onerror = () => setStatus('b64DecodeStatus', '???대?吏濡??붿퐫?⑺븷 ???놁뒿?덈떎.', false);
+    img.onload = () => setStatus('b64DecodeStatus', `✓ 미리보기 (${img.naturalWidth}×${img.naturalHeight})`, true);
+    img.onerror = () => setStatus('b64DecodeStatus', '✗ 이미지로 디코딩할 수 없습니다.', false);
   } catch (e) {
-    setStatus('b64DecodeStatus', '??' + e.message, false);
+    setStatus('b64DecodeStatus', '✗ ' + e.message, false);
   }
 }
 
