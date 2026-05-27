@@ -79,7 +79,7 @@
   .status.err { color: var(--error); }
   .ascii-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
   @media (max-width: 640px) { .ascii-input-row { grid-template-columns: 1fr; } }
-  .ascii-table-wrap { max-height: 480px; overflow: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .ascii-table-wrap { overflow: visible; border: 1px solid var(--border); border-radius: 6px; }
   table.ascii { width: 100%; border-collapse: collapse; font-family: "Cascadia Code", "Consolas", monospace; font-size: 0.85rem; }
   table.ascii th, table.ascii td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
   table.ascii th { background: var(--panel-2); position: sticky; top: 0; z-index: 1; color: var(--accent); }
