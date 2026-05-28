@@ -134,50 +134,58 @@
   /* ===== 홈 화면 (카드 메뉴) ===== */
   .home-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 14px;
     margin-top: 8px;
   }
   .tool-card {
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 24px 20px;
+    border-left: 4px solid var(--accent-color, #38bdf8);
+    border-radius: 10px;
+    padding: 18px 22px;
     cursor: pointer;
     transition: all 0.2s;
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    justify-content: center;
+    gap: 6px;
     position: relative;
     overflow: hidden;
+    min-height: 92px;
   }
   .tool-card::before {
     content: '';
     position: absolute; inset: 0;
-    background: linear-gradient(135deg, var(--accent-color, #38bdf8) 0%, transparent 60%);
+    background: linear-gradient(90deg, var(--accent-color, #38bdf8) 0%, transparent 60%);
     opacity: 0;
     transition: opacity 0.2s;
     pointer-events: none;
   }
   .tool-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent);
-    box-shadow: 0 10px 30px rgba(56,189,248,0.15);
+    transform: translateX(4px);
+    border-color: var(--border);
+    border-left-color: var(--accent-color, #38bdf8);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   }
-  .tool-card:hover::before { opacity: 0.08; }
-  .tool-card .icon { font-size: 2.4rem; line-height: 1; }
+  .tool-card:hover::before { opacity: 0.1; }
   .tool-card .name {
-    font-size: 1.15rem; font-weight: 700; color: var(--text);
+    font-size: 1.25rem; font-weight: 700;
+    color: var(--accent-color, var(--accent));
     margin: 0;
+    letter-spacing: 0.2px;
   }
-  .tool-card .desc { color: var(--muted); font-size: 0.85rem; line-height: 1.45; }
-  .tool-card .arrow {
-    margin-top: auto;
-    color: var(--accent);
-    font-size: 0.85rem;
-    font-weight: 600;
-    display: flex; align-items: center; gap: 4px;
+  .tool-card .desc {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  @media (max-width: 480px) {
+    .home-grid { grid-template-columns: 1fr; gap: 10px; }
+    .tool-card { padding: 16px 18px; min-height: 80px; }
+    .tool-card .name { font-size: 1.15rem; }
+    .tool-card .desc { font-size: 0.85rem; }
   }
 
   /* ===== 도구 페이지 상단 네비 ===== */
@@ -220,8 +228,12 @@
     cursor: pointer;
     font-size: 0.85rem;
   }
-  .tool-nav .quick-jump button:hover { color: var(--text); background: var(--panel); }
-  .tool-nav .quick-jump button.active { color: var(--accent); border-color: var(--accent); }
+  .tool-nav .quick-jump button:hover { color: var(--tool-color, var(--text)); background: var(--panel); }
+  .tool-nav .quick-jump button.active {
+    color: var(--tool-color, var(--accent));
+    border-color: var(--tool-color, var(--accent));
+    background: var(--panel);
+  }
   @media (max-width: 640px) {
     .tool-nav { padding: 12px 16px; }
     .tool-nav .quick-jump { display: none; }
@@ -248,46 +260,32 @@
   <section class="panel active" id="panel-home">
     <div class="home-grid">
       <div class="tool-card" data-tool="json" style="--accent-color:#38bdf8;">
-        <div class="icon">📋</div>
         <div class="name">JSON</div>
         <div class="desc">정렬(Pretty) · 압축(Minify) · 문자열 인코딩/디코딩</div>
-        <div class="arrow">열기 →</div>
       </div>
       <div class="tool-card" data-tool="ascii" style="--accent-color:#fbbf24;">
-        <div class="icon">🔡</div>
         <div class="name">ASCII</div>
         <div class="desc">텍스트 ↔ ASCII 코드 변환, 0–127 검색 가능한 표</div>
-        <div class="arrow">열기 →</div>
       </div>
       <div class="tool-card" data-tool="base" style="--accent-color:#4ade80;">
-        <div class="icon">🔢</div>
         <div class="name">진수 변환</div>
         <div class="desc">2 / 8 / 10 / 16진수 실시간 변환 (BigInt 지원)</div>
-        <div class="arrow">열기 →</div>
       </div>
       <div class="tool-card" data-tool="url" style="--accent-color:#a78bfa;">
-        <div class="icon">🌐</div>
         <div class="name">URL</div>
         <div class="desc">encodeURI / encodeURIComponent + URL 파서</div>
-        <div class="arrow">열기 →</div>
       </div>
       <div class="tool-card" data-tool="qr" style="--accent-color:#f472b6;">
-        <div class="icon">📱</div>
         <div class="name">QR 코드</div>
         <div class="desc">QR 생성 + 이미지에서 QR 디코딩 (드래그·붙여넣기)</div>
-        <div class="arrow">열기 →</div>
       </div>
       <div class="tool-card" data-tool="unicode" style="--accent-color:#f87171;">
-        <div class="icon">🌏</div>
         <div class="name">Unicode</div>
         <div class="desc">UTF-16 / ES6 / HTML / UTF-8 형식 변환 + 상세표</div>
-        <div class="arrow">열기 →</div>
       </div>
       <div class="tool-card" data-tool="base64" style="--accent-color:#22d3ee;">
-        <div class="icon">📦</div>
         <div class="name">Base64</div>
         <div class="desc">텍스트/파일 인코딩·디코딩, URL-safe, Data URL</div>
-        <div class="arrow">열기 →</div>
       </div>
     </div>
   </section>
@@ -563,13 +561,13 @@
 <script>
 /* ===== Routing (홈 ↔ 도구 페이지) ===== */
 const TOOLS = [
-  { id: 'json',    name: 'JSON',       icon: '📋' },
-  { id: 'ascii',   name: 'ASCII',      icon: '🔡' },
-  { id: 'base',    name: '진수 변환',  icon: '🔢' },
-  { id: 'url',     name: 'URL',        icon: '🌐' },
-  { id: 'qr',      name: 'QR 코드',    icon: '📱' },
-  { id: 'unicode', name: 'Unicode',    icon: '🌏' },
-  { id: 'base64',  name: 'Base64',     icon: '📦' },
+  { id: 'json',    name: 'JSON',      color: '#38bdf8' },
+  { id: 'ascii',   name: 'ASCII',     color: '#fbbf24' },
+  { id: 'base',    name: '진수 변환', color: '#4ade80' },
+  { id: 'url',     name: 'URL',       color: '#a78bfa' },
+  { id: 'qr',      name: 'QR 코드',   color: '#f472b6' },
+  { id: 'unicode', name: 'Unicode',   color: '#f87171' },
+  { id: 'base64',  name: 'Base64',    color: '#22d3ee' },
 ];
 
 function showPanel(id) {
@@ -584,7 +582,9 @@ function showPanel(id) {
   } else {
     const tool = TOOLS.find(t => t.id === id);
     nav.style.display = 'flex';
-    document.getElementById('currentToolName').textContent = (tool ? tool.icon + ' ' + tool.name : id);
+    const nameEl = document.getElementById('currentToolName');
+    nameEl.textContent = (tool ? tool.name : id);
+    nameEl.style.color = (tool ? tool.color : '');
     document.title = (tool ? tool.name : id) + ' - 개발자 변환 도구';
     // quick-jump 활성 상태 갱신
     document.querySelectorAll('#quickJump button').forEach(b => {
@@ -613,8 +613,9 @@ document.querySelectorAll('.tool-card').forEach(card => {
 const quickJump = document.getElementById('quickJump');
 TOOLS.forEach(t => {
   const btn = document.createElement('button');
-  btn.textContent = t.icon + ' ' + t.name;
+  btn.textContent = t.name;
   btn.dataset.tool = t.id;
+  btn.style.setProperty('--tool-color', t.color);
   btn.addEventListener('click', () => navigate(t.id));
   quickJump.appendChild(btn);
 });
