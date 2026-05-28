@@ -565,7 +565,8 @@
           <label style="color:var(--muted);font-size:0.85rem;">레거시 인코딩 (ANSI)</label>
           <select id="encLegacy">
             <optgroup label="한국어">
-              <option value="euc-kr" selected>CP949 / EUC-KR (한국 ANSI)</option>
+              <option value="euc-kr" selected>EUC-KR (한국 표준, 2350자)</option>
+              <option value="cp949">CP949 (한국 Windows ANSI, 8822자)</option>
             </optgroup>
             <optgroup label="일본어">
               <option value="shift_jis">Shift_JIS (일본 ANSI)</option>
@@ -1449,7 +1450,8 @@ function toggleEncA2uMode() {
 }
 
 function encAnsiToUtf8() {
-  const enc = document.getElementById('encLegacy').value;
+  const encRaw = document.getElementById('encLegacy').value;
+  const enc = normalizeEncoding(encRaw);
   const mode = document.getElementById('encA2uInputMode').value;
   const input = document.getElementById('encA2uInput').value;
 
@@ -1473,8 +1475,8 @@ function encAnsiToUtf8() {
     const text = decoder.decode(bytes);
     document.getElementById('encA2uOutput').value = text;
     document.getElementById('encA2uInfo').textContent =
-      `✓ ${enc.toUpperCase()} ${bytes.length} bytes → UTF-8 ${text.length} chars`;
-    setStatus('encA2uStatus', `✓ ${enc} → UTF-8 변환 완료`, true);
+      `✓ ${encRaw.toUpperCase()} ${bytes.length} bytes → UTF-8 ${text.length} chars`;
+    setStatus('encA2uStatus', `✓ ${encRaw.toUpperCase()} → UTF-8 변환 완료`, true);
   } catch (e) {
     setStatus('encA2uStatus', '✗ ' + e.message, false);
   }
@@ -1483,7 +1485,8 @@ function encAnsiToUtf8() {
 document.getElementById('encA2uFile').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  const enc = document.getElementById('encLegacy').value;
+  const encRaw = document.getElementById('encLegacy').value;
+  const enc = normalizeEncoding(encRaw);
   const reader = new FileReader();
   reader.onload = (ev) => {
     try {
@@ -1491,7 +1494,7 @@ document.getElementById('encA2uFile').addEventListener('change', (e) => {
       const text = new TextDecoder(enc, { fatal: false }).decode(bytes);
       document.getElementById('encA2uOutput').value = text;
       document.getElementById('encA2uInfo').innerHTML =
-        `✓ <b>${escapeHtml(file.name)}</b> · ${enc.toUpperCase()} ${bytes.length} bytes → UTF-8 ${text.length} chars`;
+        `✓ <b>${escapeHtml(file.name)}</b> · ${encRaw.toUpperCase()} ${bytes.length} bytes → UTF-8 ${text.length} chars`;
       setStatus('encA2uStatus', '✓ 파일 변환 완료', true);
     } catch (err) {
       setStatus('encA2uStatus', '✗ ' + err.message, false);
@@ -1552,8 +1555,25 @@ function loadLegacyEncoder() {
   return _legacyEncoderReady;
 }
 
+// 일부 인코딩 이름을 라이브러리가 인식하는 표준 이름으로 매핑
+// (text-encoding은 WHATWG 표준 라벨만 받음. cp949는 별칭이라 euc-kr로 매핑)
+function normalizeEncoding(enc) {
+  const aliases = {
+    'cp949': 'euc-kr',     // CP949는 EUC-KR의 확장이지만 라이브러리는 euc-kr로 처리 (사실상 동일 동작)
+    'ms949': 'euc-kr',
+    'cp932': 'shift_jis',
+    'ms932': 'shift_jis',
+    'cp936': 'gbk',
+    'ms936': 'gbk',
+    'cp950': 'big5',
+    'ms950': 'big5',
+  };
+  return aliases[enc.toLowerCase()] || enc;
+}
+
 async function encUtf8ToAnsi() {
-  const enc = document.getElementById('encLegacy').value;
+  const encRaw = document.getElementById('encLegacy').value;
+  const enc = normalizeEncoding(encRaw);
   const text = document.getElementById('encU2aInput').value;
   if (!text) {
     document.getElementById('encU2aOutput').value = '';
@@ -1564,15 +1584,22 @@ async function encUtf8ToAnsi() {
   try {
     setStatus('encU2aStatus', '⏳ 변환 중...', true);
     const LegacyEncoder = await loadLegacyEncoder();
-    // text-encoding의 TextEncoder는 옵션으로 레거시 인코딩 지정 가능
     const encoder = new LegacyEncoder(enc, { NONSTANDARD_allowLegacyEncoding: true });
     const bytes = encoder.encode(text);
     _lastU2aBytes = bytes;
-    _lastU2aEnc = enc;
+    _lastU2aEnc = encRaw;
     formatU2aOutput(bytes);
+    // 변환 못한 문자 감지: encoder는 알 수 없는 문자를 0x3F('?')로 대체
+    const questionMarks = Array.from(bytes).filter(b => b === 0x3F).length;
+    const origQs = (text.match(/\?/g) || []).length;
+    const lost = questionMarks - origQs;
+    let warning = '';
+    if (lost > 0) {
+      warning = ` <span style="color:var(--warn);">⚠ ${lost}개 문자는 이 인코딩에서 지원하지 않아 '?'로 대체되었습니다.</span>`;
+    }
     document.getElementById('encU2aInfo').innerHTML =
-      `✓ UTF-8 ${text.length} chars → ${enc.toUpperCase()} <b>${bytes.length}</b> bytes`;
-    setStatus('encU2aStatus', `✓ UTF-8 → ${enc} 변환 완료`, true);
+      `✓ UTF-8 ${text.length} chars → ${encRaw.toUpperCase()} <b>${bytes.length}</b> bytes` + warning;
+    setStatus('encU2aStatus', `✓ UTF-8 → ${encRaw.toUpperCase()} 변환 완료`, true);
   } catch (e) {
     setStatus('encU2aStatus', '✗ ' + e.message + ' (해당 인코딩에 없는 문자가 포함됐을 수 있습니다)', false);
   }
