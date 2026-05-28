@@ -287,6 +287,10 @@
         <div class="name">Base64</div>
         <div class="desc">텍스트/파일 인코딩·디코딩, URL-safe, Data URL</div>
       </div>
+      <div class="tool-card" data-tool="encoding" style="--accent-color:#fb923c;">
+        <div class="name">ANSI ↔ UTF-8</div>
+        <div class="desc">CP949/EUC-KR · Shift_JIS · GBK 등 코드페이지 변환</div>
+      </div>
     </div>
   </section>
 
@@ -552,6 +556,120 @@
     </div>
   </section>
 
+  <!-- ENCODING (ANSI ↔ UTF-8) -->
+  <section class="panel" id="panel-encoding">
+    <div class="card" style="margin-bottom:16px;">
+      <h3>코드페이지 선택 <span class="badge">한국=CP949 / 일본=Shift_JIS / 중국=GBK</span></h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="color:var(--muted);font-size:0.85rem;">레거시 인코딩 (ANSI)</label>
+          <select id="encLegacy">
+            <optgroup label="한국어">
+              <option value="euc-kr" selected>CP949 / EUC-KR (한국 ANSI)</option>
+            </optgroup>
+            <optgroup label="일본어">
+              <option value="shift_jis">Shift_JIS (일본 ANSI)</option>
+              <option value="euc-jp">EUC-JP</option>
+              <option value="iso-2022-jp">ISO-2022-JP</option>
+            </optgroup>
+            <optgroup label="중국어">
+              <option value="gbk">GBK / GB2312 (간체)</option>
+              <option value="gb18030">GB18030</option>
+              <option value="big5">Big5 (번체)</option>
+            </optgroup>
+            <optgroup label="서유럽">
+              <option value="windows-1252">Windows-1252 (서유럽 ANSI)</option>
+              <option value="iso-8859-1">ISO-8859-1 (Latin-1)</option>
+            </optgroup>
+            <optgroup label="기타">
+              <option value="windows-1251">Windows-1251 (키릴/러시아)</option>
+              <option value="windows-1250">Windows-1250 (중유럽)</option>
+              <option value="windows-1254">Windows-1254 (터키)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div style="display:flex;align-items:end;">
+          <p class="hint" style="margin:0;">
+            Windows 메모장의 "ANSI" 인코딩은 시스템 언어에 따라 달라집니다.<br>
+            한국어 Windows = <b>CP949</b>가 기본입니다.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- ANSI → UTF-8 -->
+      <div class="card">
+        <h3>ANSI → UTF-8</h3>
+        <p class="hint" style="margin-top:0;">레거시 인코딩으로 저장된 텍스트를 UTF-8로 변환합니다.</p>
+        <label style="color:var(--muted);font-size:0.85rem;">입력 방식</label>
+        <select id="encA2uInputMode" onchange="toggleEncA2uMode()" style="margin-bottom:8px;">
+          <option value="hex">바이트 (16진수) 입력</option>
+          <option value="text">텍스트로 입력 (현재 페이지가 잘못 해석한 글자)</option>
+          <option value="file">파일 업로드</option>
+        </select>
+        <textarea id="encA2uInput" placeholder="예) ANSI 바이트를 16진수로 입력&#10;BE C8 B3 E7 C7 CF BC BC BF E4&#10;또는 공백 없이: BEC8B3E7C7CFBCBCBFE4" oninput="encAnsiToUtf8()"></textarea>
+        <div id="encA2uFileDrop" class="qr-drop" style="display:none;margin-top:8px;" onclick="document.getElementById('encA2uFile').click()">
+          📁 파일 클릭/드래그하여 업로드
+        </div>
+        <input type="file" id="encA2uFile" style="display:none;" />
+        <div class="btn-row">
+          <button class="action" onclick="encAnsiToUtf8()">변환 →</button>
+          <button class="secondary" onclick="clearEncA2u()">지우기</button>
+        </div>
+        <div id="encA2uStatus" class="status"></div>
+      </div>
+      <div class="card">
+        <h3>결과 (UTF-8) <button class="copy-btn" onclick="copyText('encA2uOutput')">복사</button></h3>
+        <textarea id="encA2uOutput" readonly></textarea>
+        <div class="btn-row">
+          <button class="action" onclick="downloadEncA2u()">UTF-8 텍스트 파일 저장</button>
+        </div>
+        <div id="encA2uInfo" class="hint" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:16px;">
+      <!-- UTF-8 → ANSI -->
+      <div class="card">
+        <h3>UTF-8 → ANSI</h3>
+        <p class="hint" style="margin-top:0;">UTF-8 텍스트를 선택한 레거시 인코딩으로 변환합니다.</p>
+        <textarea id="encU2aInput" placeholder="UTF-8 텍스트 입력 (한글, 일본어, 중국어 등)" oninput="encUtf8ToAnsi()"></textarea>
+        <div class="btn-row">
+          <button class="action" onclick="encUtf8ToAnsi()">변환 →</button>
+          <button class="secondary" onclick="clearEncU2a()">지우기</button>
+        </div>
+        <div id="encU2aStatus" class="status"></div>
+      </div>
+      <div class="card">
+        <h3>결과 (ANSI 바이트)</h3>
+        <label style="color:var(--muted);font-size:0.85rem;">표시 형식</label>
+        <select id="encU2aFormat" onchange="encUtf8ToAnsi()" style="margin-bottom:8px;">
+          <option value="hex-space">16진수 (공백 구분): BE C8</option>
+          <option value="hex-cont">16진수 (붙여서): BEC8</option>
+          <option value="hex-0x">0x BE, 0x C8</option>
+          <option value="dec">10진수: 190 200</option>
+          <option value="cstring">C 문자열: \xBE\xC8</option>
+        </select>
+        <textarea id="encU2aOutput" readonly></textarea>
+        <div class="btn-row">
+          <button class="action" onclick="copyText('encU2aOutput')">결과 복사</button>
+          <button class="action" onclick="downloadEncU2a()">ANSI 바이너리 파일 저장</button>
+        </div>
+        <div id="encU2aInfo" class="hint" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>깨진 글자 자동 복구 (Mojibake Fixer)</h3>
+      <p class="hint" style="margin-top:0;">
+        파일/웹 페이지에서 한글이 <code>아ì•ˆë…•</code>, <code>곾덇뀈</code> 같이 깨져 보일 때, 어떤 인코딩 조합인지 자동으로 추측해서 복구를 시도합니다.
+      </p>
+      <textarea id="encFixInput" placeholder="깨져 보이는 텍스트를 붙여넣으세요" oninput="fixMojibake()"></textarea>
+      <div id="encFixOut" style="margin-top:12px;"></div>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -567,7 +685,8 @@ const TOOLS = [
   { id: 'url',     name: 'URL',       color: '#a78bfa' },
   { id: 'qr',      name: 'QR 코드',   color: '#f472b6' },
   { id: 'unicode', name: 'Unicode',   color: '#f87171' },
-  { id: 'base64',  name: 'Base64',    color: '#22d3ee' },
+  { id: 'base64',   name: 'Base64',      color: '#22d3ee' },
+  { id: 'encoding', name: 'ANSI ↔ UTF-8', color: '#fb923c' },
 ];
 
 function showPanel(id) {
@@ -1279,8 +1398,291 @@ function previewBase64Image() {
   }
 }
 
+/* ===== ANSI ↔ UTF-8 ===== */
+// 브라우저 TextEncoder는 UTF-8 전용. 레거시 인코딩으로 인코딩하려면 폴리필 또는 매핑 필요.
+// TextDecoder는 다양한 레거시 인코딩 지원. 우리는 TextEncoder를 위해 'text-encoding'을 직접 만들지 않고,
+// 한 트릭을 사용: encodeURIComponent → escape 같은 트릭은 한정적. 대신, 사용자가 입력한 UTF-8 텍스트의
+// 각 문자를 코드 포인트 단위로 처리하지 않고, document에 그려 form submit 형식으로 인코딩하는 방법이 있음.
+// 가장 신뢰성 높은 방법: form의 accept-charset을 사용하는 것 (브라우저가 자동 변환). 여기선
+// FileReader + Blob 트릭과 TextDecoder/Encoder 조합을 활용.
+
+// 헬퍼: 16진수 문자열 → Uint8Array
+function hexToBytes(hex) {
+  const clean = hex.replace(/0x/gi, '').replace(/[\s,;:]/g, '');
+  if (!/^[0-9a-fA-F]*$/.test(clean) || clean.length % 2 !== 0) {
+    throw new Error('16진수 형식이 올바르지 않습니다. (짝수 개의 hex 문자 필요)');
+  }
+  const out = new Uint8Array(clean.length / 2);
+  for (let i = 0; i < out.length; i++) {
+    out[i] = parseInt(clean.substr(i * 2, 2), 16);
+  }
+  return out;
+}
+
+// 헬퍼: 텍스트의 각 문자를 단일 바이트로 (windows-1252/latin-1 영역 가정 - mojibake 복구용)
+function textToBytesLatin1(text) {
+  const bytes = new Uint8Array(text.length);
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    bytes[i] = c & 0xFF;
+  }
+  return bytes;
+}
+
+// ===== ANSI → UTF-8 =====
+function toggleEncA2uMode() {
+  const mode = document.getElementById('encA2uInputMode').value;
+  const ta = document.getElementById('encA2uInput');
+  const drop = document.getElementById('encA2uFileDrop');
+  if (mode === 'file') {
+    ta.style.display = 'none';
+    drop.style.display = 'block';
+  } else {
+    ta.style.display = 'block';
+    drop.style.display = 'none';
+    if (mode === 'hex') {
+      ta.placeholder = '예) ANSI 바이트를 16진수로 입력\nBE C8 B3 E7 C7 CF BC BC BF E4\n또는 공백 없이: BEC8B3E7C7CFBCBCBFE4';
+    } else {
+      ta.placeholder = '예) UTF-8로 잘못 디코딩된 문자열 (예: 깨진 글자) - 텍스트의 각 문자를 바이트로 간주하여 다시 디코딩합니다.';
+    }
+  }
+}
+
+function encAnsiToUtf8() {
+  const enc = document.getElementById('encLegacy').value;
+  const mode = document.getElementById('encA2uInputMode').value;
+  const input = document.getElementById('encA2uInput').value;
+
+  if (mode === 'file') return; // 파일 모드는 별도 핸들러
+  if (!input.trim()) {
+    document.getElementById('encA2uOutput').value = '';
+    document.getElementById('encA2uInfo').textContent = '';
+    setStatus('encA2uStatus', '', true);
+    return;
+  }
+
+  try {
+    let bytes;
+    if (mode === 'hex') {
+      bytes = hexToBytes(input);
+    } else {
+      // 텍스트 모드: 각 문자를 단일 바이트로 (mojibake 복구용)
+      bytes = textToBytesLatin1(input);
+    }
+    const decoder = new TextDecoder(enc, { fatal: false });
+    const text = decoder.decode(bytes);
+    document.getElementById('encA2uOutput').value = text;
+    document.getElementById('encA2uInfo').textContent =
+      `✓ ${enc.toUpperCase()} ${bytes.length} bytes → UTF-8 ${text.length} chars`;
+    setStatus('encA2uStatus', `✓ ${enc} → UTF-8 변환 완료`, true);
+  } catch (e) {
+    setStatus('encA2uStatus', '✗ ' + e.message, false);
+  }
+}
+
+document.getElementById('encA2uFile').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const enc = document.getElementById('encLegacy').value;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const bytes = new Uint8Array(ev.target.result);
+      const text = new TextDecoder(enc, { fatal: false }).decode(bytes);
+      document.getElementById('encA2uOutput').value = text;
+      document.getElementById('encA2uInfo').innerHTML =
+        `✓ <b>${escapeHtml(file.name)}</b> · ${enc.toUpperCase()} ${bytes.length} bytes → UTF-8 ${text.length} chars`;
+      setStatus('encA2uStatus', '✓ 파일 변환 완료', true);
+    } catch (err) {
+      setStatus('encA2uStatus', '✗ ' + err.message, false);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function clearEncA2u() {
+  document.getElementById('encA2uInput').value = '';
+  document.getElementById('encA2uOutput').value = '';
+  document.getElementById('encA2uInfo').textContent = '';
+  setStatus('encA2uStatus', '', true);
+}
+
+function downloadEncA2u() {
+  const text = document.getElementById('encA2uOutput').value;
+  if (!text) return setStatus('encA2uStatus', '결과가 비어있습니다.', false);
+  // UTF-8 BOM 포함하여 저장 (Windows 메모장 호환)
+  const utf8 = new TextEncoder().encode(text);
+  const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), utf8], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'converted_utf8.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== UTF-8 → ANSI =====
+// 브라우저에서 UTF-8 텍스트를 임의의 레거시 인코딩으로 인코딩하기:
+// 트릭: form data를 이용. accept-charset 지정한 form을 사용하면 브라우저가 자동 변환하지만 비동기 처리 복잡.
+// 대신 우리는 TextEncoder가 지원 안 하는 인코딩에 대해 매핑 테이블이 필요.
+// 가장 실용적: 'TextEncoderLegacy' 폴리필 또는 iconv-lite. CDN으로 가져오기.
+// 이미 CDN으로 다른 라이브러리 가져왔으니 여기도 추가. -> 페이지 상단에 동적 로드.
+
+// text-encoding 폴리필 — TextEncoder의 옵션으로 레거시 인코딩 지원
+let _legacyEncoderReady = null;
+let _LegacyTextEncoder = null;
+function loadLegacyEncoder() {
+  if (_legacyEncoderReady) return _legacyEncoderReady;
+  _legacyEncoderReady = new Promise((resolve, reject) => {
+    // 표준 TextEncoder 백업 (덮어쓰기 방지)
+    const standardTE = window.TextEncoder;
+    const standardTD = window.TextDecoder;
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/text-encoding@0.7.0/lib/encoding.js';
+    s.onload = () => {
+      // 폴리필이 글로벌 TextEncoder를 덮어쓰면, 옵션 지원 버전을 잡아두고 표준으로 복원
+      _LegacyTextEncoder = window.TextEncoder;
+      window.TextEncoder = standardTE;
+      window.TextDecoder = standardTD;
+      resolve(_LegacyTextEncoder);
+    };
+    s.onerror = () => reject(new Error('text-encoding 라이브러리 로드 실패 - 네트워크 확인'));
+    document.head.appendChild(s);
+  });
+  return _legacyEncoderReady;
+}
+
+async function encUtf8ToAnsi() {
+  const enc = document.getElementById('encLegacy').value;
+  const text = document.getElementById('encU2aInput').value;
+  if (!text) {
+    document.getElementById('encU2aOutput').value = '';
+    document.getElementById('encU2aInfo').textContent = '';
+    setStatus('encU2aStatus', '', true);
+    return;
+  }
+  try {
+    setStatus('encU2aStatus', '⏳ 변환 중...', true);
+    const LegacyEncoder = await loadLegacyEncoder();
+    // text-encoding의 TextEncoder는 옵션으로 레거시 인코딩 지정 가능
+    const encoder = new LegacyEncoder(enc, { NONSTANDARD_allowLegacyEncoding: true });
+    const bytes = encoder.encode(text);
+    _lastU2aBytes = bytes;
+    _lastU2aEnc = enc;
+    formatU2aOutput(bytes);
+    document.getElementById('encU2aInfo').innerHTML =
+      `✓ UTF-8 ${text.length} chars → ${enc.toUpperCase()} <b>${bytes.length}</b> bytes`;
+    setStatus('encU2aStatus', `✓ UTF-8 → ${enc} 변환 완료`, true);
+  } catch (e) {
+    setStatus('encU2aStatus', '✗ ' + e.message + ' (해당 인코딩에 없는 문자가 포함됐을 수 있습니다)', false);
+  }
+}
+
+let _lastU2aBytes = null;
+let _lastU2aEnc = '';
+function formatU2aOutput(bytes) {
+  if (!bytes) bytes = _lastU2aBytes;
+  if (!bytes) return;
+  const fmt = document.getElementById('encU2aFormat').value;
+  const arr = Array.from(bytes);
+  let out = '';
+  switch (fmt) {
+    case 'hex-space': out = arr.map(b => b.toString(16).toUpperCase().padStart(2,'0')).join(' '); break;
+    case 'hex-cont':  out = arr.map(b => b.toString(16).toUpperCase().padStart(2,'0')).join(''); break;
+    case 'hex-0x':    out = arr.map(b => '0x' + b.toString(16).toUpperCase().padStart(2,'0')).join(', '); break;
+    case 'dec':       out = arr.join(' '); break;
+    case 'cstring':   out = arr.map(b => '\\x' + b.toString(16).toUpperCase().padStart(2,'0')).join(''); break;
+  }
+  document.getElementById('encU2aOutput').value = out;
+}
+
+function clearEncU2a() {
+  document.getElementById('encU2aInput').value = '';
+  document.getElementById('encU2aOutput').value = '';
+  document.getElementById('encU2aInfo').textContent = '';
+  _lastU2aBytes = null;
+  setStatus('encU2aStatus', '', true);
+}
+
+function downloadEncU2a() {
+  if (!_lastU2aBytes) return setStatus('encU2aStatus', '먼저 변환하세요.', false);
+  const blob = new Blob([_lastU2aBytes], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `converted_${_lastU2aEnc}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== Mojibake (깨진 글자) 자동 복구 =====
+function fixMojibake() {
+  const input = document.getElementById('encFixInput').value;
+  const out = document.getElementById('encFixOut');
+  if (!input.trim()) { out.innerHTML = ''; return; }
+
+  // 다양한 (잘못된 디코딩 → 올바른 디코딩) 조합을 시도
+  const sourceEncodings = ['windows-1252', 'iso-8859-1', 'utf-8'];
+  const targetEncodings = ['euc-kr', 'shift_jis', 'gbk', 'big5', 'utf-8', 'windows-1252'];
+
+  const candidates = [];
+  for (const src of sourceEncodings) {
+    for (const tgt of targetEncodings) {
+      if (src === tgt) continue;
+      try {
+        // input을 src로 인코딩된 것처럼 바이트로 변환
+        let bytes;
+        if (src === 'utf-8') {
+          bytes = new TextEncoder().encode(input);
+        } else {
+          // 단일바이트 인코딩으로 가정: 각 문자를 그대로 바이트로
+          bytes = textToBytesLatin1(input);
+        }
+        const decoded = new TextDecoder(tgt, { fatal: false }).decode(bytes);
+        // 점수: 한글/CJK가 많이 등장 + 치환문자(\uFFFD) 적음
+        const score = scoreReadable(decoded);
+        candidates.push({ src, tgt, decoded, score });
+      } catch (e) { /* skip */ }
+    }
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+  const top = candidates.slice(0, 5);
+
+  if (top.length === 0 || top[0].score <= 0) {
+    out.innerHTML = '<span style="color:var(--muted);">복구할 만한 조합을 찾지 못했습니다.</span>';
+    return;
+  }
+
+  let html = '<div style="margin-bottom:8px;color:var(--muted);font-size:0.85rem;">가능성 높은 순으로 표시 (점수: 한글/CJK 비율 기준)</div>';
+  top.forEach((c, i) => {
+    const isBest = i === 0;
+    html += `<div style="padding:10px;background:${isBest ? 'rgba(74,222,128,0.08)' : 'var(--panel-2)'};border-radius:6px;margin-bottom:6px;border:1px solid ${isBest ? 'var(--success)' : 'var(--border)'};">
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:4px;">
+        ${isBest ? '⭐ ' : ''}<b>${c.src} → ${c.tgt}</b> (점수: ${c.score.toFixed(2)})
+      </div>
+      <div style="font-family:'Cascadia Code',monospace;word-break:break-all;color:var(--text);">${escapeHtml(c.decoded)}</div>
+    </div>`;
+  });
+  out.innerHTML = html;
+}
+
+function scoreReadable(text) {
+  if (!text) return 0;
+  const replacement = (text.match(/\uFFFD/g) || []).length;
+  if (replacement > text.length * 0.3) return -1;
+  // 한글, 일본어, 중국어, 영문, 숫자, 공백 등 "정상" 문자
+  const cjk = (text.match(/[\uAC00-\uD7AF\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g) || []).length;
+  const ascii = (text.match(/[\x20-\x7E]/g) || []).length;
+  const weird = (text.match(/[\u0080-\u00FF]/g) || []).length;
+  const length = text.length;
+  // CJK는 가중치 높게, weird(라틴-1 영역의 깨진 흔적) 페널티
+  return (cjk * 2 + ascii * 0.5 - weird * 1 - replacement * 3) / Math.max(1, length);
+}
+
 /* Init */
 renderAsciiTable();
+toggleEncA2uMode();
 </script>
 </body>
 </html>
