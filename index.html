@@ -284,6 +284,18 @@
         <div class="name">ANSI ↔ UTF-8</div>
         <div class="desc">CP949/EUC-KR · Shift_JIS · GBK 등 코드페이지 변환</div>
       </div>
+      <div class="tool-card" data-tool="checksum" style="--accent-color:#34d399;">
+        <div class="name">체크섬 / CRC</div>
+        <div class="desc">XOR·SUM 체크섬, CRC-8/16/32 (MODBUS, CCITT 등)</div>
+      </div>
+      <div class="tool-card" data-tool="netaddr" style="--accent-color:#60a5fa;">
+        <div class="name">MAC / IP 변환</div>
+        <div class="desc">IPv4 ↔ 정수·바이너리, 서브넷 계산, MAC 주소 형식 변환</div>
+      </div>
+      <div class="tool-card" data-tool="voltage" style="--accent-color:#facc15;">
+        <div class="name">전압 분배기</div>
+        <div class="desc">Vout/전류/전력 계산, 목표 전압에 필요한 저항값 역산</div>
+      </div>
     </div>
   </section>
 
@@ -671,6 +683,104 @@
     </div>
   </section>
 
+  <!-- CHECKSUM / CRC -->
+  <section class="panel" id="panel-checksum">
+    <div class="grid-2">
+      <div class="card">
+        <h3>입력 <span class="badge">text / hex bytes</span></h3>
+        <label style="color:var(--muted);font-size:0.85rem;">입력 형식</label>
+        <select id="cksumMode" onchange="calcChecksum()" style="margin-bottom:8px;">
+          <option value="text">텍스트 (UTF-8 바이트로 변환)</option>
+          <option value="hex">16진수 바이트 (예: 48 65 6C 6C 6F)</option>
+        </select>
+        <textarea id="cksumInput" placeholder="예) Hello World" oninput="calcChecksum()"></textarea>
+        <div class="btn-row">
+          <button class="secondary" onclick="clearChecksum()">지우기</button>
+        </div>
+        <div id="cksumStatus" class="status"></div>
+        <p class="hint">입력을 바이트 배열로 바꾼 뒤 여러 체크섬 · CRC 알고리즘을 한 번에 계산합니다.</p>
+      </div>
+      <div class="card">
+        <h3>결과 <span class="badge" id="cksumByteCount"></span></h3>
+        <div id="cksumOut" style="font-family:var(--mono);font-size:0.87rem;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAC / IP -->
+  <section class="panel" id="panel-netaddr">
+    <div class="grid-2">
+      <div class="card">
+        <h3>IPv4 ↔ 정수 <span class="badge">자동 감지</span></h3>
+        <input type="text" id="ipConvInput" placeholder="예) 192.168.0.1  또는  3232235521  또는  0xC0A80001" oninput="convertIp()" />
+        <div id="ipConvOut" style="margin-top:12px;font-family:var(--mono);font-size:0.87rem;"></div>
+        <div id="ipConvStatus" class="status"></div>
+        <p class="hint">점 표기 IP, 10진수, 16진수(0x)를 입력하면 자동으로 인식해 나머지 형식으로 변환합니다.</p>
+      </div>
+      <div class="card">
+        <h3>서브넷 계산기 <span class="badge">CIDR</span></h3>
+        <input type="text" id="subnetInput" placeholder="예) 192.168.1.10/24" value="192.168.1.10/24" oninput="calcSubnet()" />
+        <div id="subnetOut" style="margin-top:12px;font-family:var(--mono);font-size:0.87rem;"></div>
+        <div id="subnetStatus" class="status"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>MAC 주소 형식 변환</h3>
+      <input type="text" id="macInput" placeholder="예) AA:BB:CC:DD:EE:FF  또는  aabb.ccdd.eeff  또는  AABBCCDDEEFF" oninput="convertMac()" />
+      <div id="macOut" style="margin-top:12px;font-family:var(--mono);font-size:0.87rem;"></div>
+      <div id="macStatus" class="status"></div>
+    </div>
+  </section>
+
+  <!-- VOLTAGE DIVIDER -->
+  <section class="panel" id="panel-voltage">
+    <div class="grid-2">
+      <div class="card">
+        <h3>Vout 계산 <span class="badge">Vin, R1, R2 → Vout</span></h3>
+        <div class="base-grid">
+          <label for="vdVin">Vin (V)</label>
+          <input type="text" id="vdVin" value="5" oninput="calcVoltageDivider()" />
+          <label for="vdR1">R1 (Ω)</label>
+          <input type="text" id="vdR1" placeholder="예) 10k, 4.7M, 220" value="10k" oninput="calcVoltageDivider()" />
+          <label for="vdR2">R2 (Ω)</label>
+          <input type="text" id="vdR2" placeholder="예) 10k, 4.7M, 220" value="10k" oninput="calcVoltageDivider()" />
+        </div>
+        <p class="hint">R1은 Vin~Vout 사이, R2는 Vout~GND 사이 저항입니다. 저항값에 <code>k</code>/<code>M</code> 접미사를 쓸 수 있습니다 (예: 4.7k, 1M).</p>
+        <div id="vdStatus" class="status"></div>
+      </div>
+      <div class="card">
+        <h3>결과</h3>
+        <div id="vdOut" style="font-family:var(--mono);font-size:0.9rem;"></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="card">
+        <h3>필요 저항값 역산 <span class="badge">목표 Vout 기준</span></h3>
+        <div class="base-grid">
+          <label for="vdrVin">Vin (V)</label>
+          <input type="text" id="vdrVin" value="5" oninput="calcVoltageDividerReverse()" />
+          <label for="vdrVout">목표 Vout (V)</label>
+          <input type="text" id="vdrVout" value="3.3" oninput="calcVoltageDividerReverse()" />
+          <label for="vdrKnownWhich">알고 있는 저항</label>
+          <select id="vdrKnownWhich" onchange="calcVoltageDividerReverse()">
+            <option value="r1">R1 (Vin측)</option>
+            <option value="r2">R2 (GND측)</option>
+          </select>
+          <label for="vdrKnownValue">저항값 (Ω)</label>
+          <input type="text" id="vdrKnownValue" placeholder="예) 10k" value="10k" oninput="calcVoltageDividerReverse()" />
+        </div>
+        <div id="vdrStatus" class="status"></div>
+      </div>
+      <div class="card">
+        <h3>계산된 나머지 저항</h3>
+        <div id="vdrOut" style="font-family:var(--mono);font-size:0.9rem;"></div>
+        <p class="hint">계산된 값과 가장 가까운 E12 표준 저항값을 함께 보여줍니다.</p>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <script>
@@ -684,6 +794,9 @@ const TOOLS = [
   { id: 'unicode', name: 'Unicode',   color: '#f87171' },
   { id: 'base64',   name: 'Base64',      color: '#22d3ee' },
   { id: 'encoding', name: 'ANSI ↔ UTF-8', color: '#fb923c' },
+  { id: 'checksum', name: '체크섬 / CRC', color: '#34d399' },
+  { id: 'netaddr',  name: 'MAC / IP 변환', color: '#60a5fa' },
+  { id: 'voltage',  name: '전압 분배기', color: '#facc15' },
 ];
 
 function showPanel(id) {
@@ -1599,9 +1712,288 @@ function scoreReadable(text) {
   return (cjk * 2 + ascii * 0.5 - weird * 1 - replacement * 3) / Math.max(1, length);
 }
 
+/* ===== 공통: key-value 결과 행 렌더링 ===== */
+function kvRow(label, value, mono) {
+  return `<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--border);">
+    <span style="color:var(--muted);">${escapeHtml(label)}</span>
+    <span style="color:var(--text);${mono===false?'':'font-family:var(--mono);'}word-break:break-all;text-align:right;">${escapeHtml(value)}</span>
+  </div>`;
+}
+
+/* ===== 체크섬 / CRC ===== */
+function crcReflect(x, bits) {
+  let r = 0;
+  for (let i = 0; i < bits; i++) { r = (r << 1) | (x & 1); x >>>= 1; }
+  return r >>> 0;
+}
+function crcGeneric(bytes, width, poly, init, refin, refout, xorout) {
+  const mask = width === 32 ? 0xFFFFFFFF : ((1 << width) - 1);
+  let crc = init >>> 0;
+  for (const byte of bytes) {
+    const b = refin ? crcReflect(byte, 8) : byte;
+    crc = (crc ^ ((b << (width - 8)) >>> 0)) >>> 0;
+    for (let i = 0; i < 8; i++) {
+      const topBitSet = (crc & (1 << (width - 1))) !== 0;
+      crc = (crc << 1) >>> 0;
+      if (topBitSet) crc = (crc ^ poly) >>> 0;
+      crc = crc & mask;
+    }
+  }
+  if (refout) crc = crcReflect(crc, width);
+  crc = (crc ^ xorout) >>> 0;
+  return crc & mask;
+}
+function getChecksumBytes() {
+  const mode = document.getElementById('cksumMode').value;
+  const raw = document.getElementById('cksumInput').value;
+  if (mode === 'hex') return hexToBytes(raw);
+  return Array.from(new TextEncoder().encode(raw));
+}
+function calcChecksum() {
+  const raw = document.getElementById('cksumInput').value;
+  const out = document.getElementById('cksumOut');
+  const countBadge = document.getElementById('cksumByteCount');
+  if (!raw.trim()) {
+    out.innerHTML = '';
+    countBadge.textContent = '';
+    setStatus('cksumStatus', '', true);
+    return;
+  }
+  let bytes;
+  try {
+    bytes = getChecksumBytes();
+  } catch (e) {
+    setStatus('cksumStatus', '✗ 16진수 파싱 실패: ' + e.message, false);
+    out.innerHTML = '';
+    return;
+  }
+  if (!bytes.length) {
+    setStatus('cksumStatus', '✗ 유효한 바이트가 없습니다.', false);
+    out.innerHTML = '';
+    return;
+  }
+  countBadge.textContent = bytes.length + ' bytes';
+  const xor8 = bytes.reduce((a, b) => a ^ b, 0) & 0xFF;
+  const sum8 = bytes.reduce((a, b) => a + b, 0) & 0xFF;
+  const sum16 = bytes.reduce((a, b) => a + b, 0) & 0xFFFF;
+  const results = [
+    ['XOR-8',              xor8,  8],
+    ['SUM-8',              sum8,  8],
+    ['SUM-16',             sum16, 16],
+    ['CRC-8',              crcGeneric(bytes, 8, 0x07, 0x00, false, false, 0x00), 8],
+    ['CRC-16/CCITT-FALSE', crcGeneric(bytes, 16, 0x1021, 0xFFFF, false, false, 0x0000), 16],
+    ['CRC-16/MODBUS',      crcGeneric(bytes, 16, 0x8005, 0xFFFF, true, true, 0x0000), 16],
+    ['CRC-16/XMODEM',      crcGeneric(bytes, 16, 0x1021, 0x0000, false, false, 0x0000), 16],
+    ['CRC-32',             crcGeneric(bytes, 32, 0x04C11DB7, 0xFFFFFFFF, true, true, 0xFFFFFFFF) >>> 0, 32],
+  ];
+  let html = '';
+  results.forEach(([name, val, bits]) => {
+    const hexStr = '0x' + val.toString(16).toUpperCase().padStart(bits / 4, '0');
+    html += kvRow(name, `${hexStr}  (${val >>> 0})`);
+  });
+  out.innerHTML = html;
+  setStatus('cksumStatus', '✓ 계산 완료', true);
+}
+function clearChecksum() {
+  document.getElementById('cksumInput').value = '';
+  document.getElementById('cksumOut').innerHTML = '';
+  document.getElementById('cksumByteCount').textContent = '';
+  setStatus('cksumStatus', '', true);
+}
+
+/* ===== MAC / IP 변환 ===== */
+function convertIp() {
+  const raw = document.getElementById('ipConvInput').value.trim();
+  const out = document.getElementById('ipConvOut');
+  if (!raw) { out.innerHTML = ''; setStatus('ipConvStatus', '', true); return; }
+  try {
+    let n;
+    const dotted = raw.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (dotted) {
+      const octets = dotted.slice(1, 5).map(Number);
+      if (octets.some(o => o > 255)) throw new Error('옥텟 값은 0~255 사이여야 합니다.');
+      n = ((octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3]) >>> 0;
+    } else if (/^0x[0-9a-fA-F]+$/.test(raw)) {
+      n = parseInt(raw, 16) >>> 0;
+    } else if (/^\d+$/.test(raw)) {
+      n = Number(raw) >>> 0;
+      if (Number(raw) > 0xFFFFFFFF) throw new Error('32비트 범위를 초과했습니다.');
+    } else {
+      throw new Error('IP / 10진수 / 0x16진수 중 하나로 입력하세요.');
+    }
+    const octets = [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
+    const ipStr = octets.join('.');
+    const binStr = octets.map(o => o.toString(2).padStart(8, '0')).join('.');
+    let html = '';
+    html += kvRow('IP 주소', ipStr);
+    html += kvRow('10진수', String(n >>> 0));
+    html += kvRow('16진수', '0x' + (n >>> 0).toString(16).toUpperCase().padStart(8, '0'));
+    html += kvRow('2진수', binStr);
+    out.innerHTML = html;
+    setStatus('ipConvStatus', '✓ 변환 완료', true);
+  } catch (e) {
+    out.innerHTML = '';
+    setStatus('ipConvStatus', '✗ ' + e.message, false);
+  }
+}
+function calcSubnet() {
+  const raw = document.getElementById('subnetInput').value.trim();
+  const out = document.getElementById('subnetOut');
+  if (!raw) { out.innerHTML = ''; setStatus('subnetStatus', '', true); return; }
+  const m = raw.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\/(\d{1,2})$/);
+  if (!m) { out.innerHTML = ''; setStatus('subnetStatus', '✗ "IP/prefix" 형식으로 입력하세요 (예: 192.168.1.10/24)', false); return; }
+  try {
+    const octets = m.slice(1, 5).map(Number);
+    const prefixLen = Number(m[5]);
+    if (octets.some(o => o > 255) || prefixLen > 32) throw new Error('유효하지 않은 IP/prefix 값입니다.');
+    const ip = ((octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3]) >>> 0;
+    const maskBits = prefixLen === 0 ? 0 : (0xFFFFFFFF << (32 - prefixLen)) >>> 0;
+    const network = (ip & maskBits) >>> 0;
+    const broadcast = (network | (~maskBits >>> 0)) >>> 0;
+    const toDotted = (x) => [(x>>>24)&255,(x>>>16)&255,(x>>>8)&255,x&255].join('.');
+    const hostCount = prefixLen >= 31 ? 0 : Math.pow(2, 32 - prefixLen) - 2;
+    let html = '';
+    html += kvRow('네트워크 주소', toDotted(network));
+    html += kvRow('브로드캐스트', toDotted(broadcast));
+    html += kvRow('서브넷 마스크', toDotted(maskBits));
+    html += kvRow('와일드카드 마스크', toDotted((~maskBits) >>> 0));
+    if (prefixLen <= 30) {
+      html += kvRow('사용 가능 호스트', toDotted(network + 1) + ' ~ ' + toDotted(broadcast - 1));
+    } else {
+      html += kvRow('사용 가능 호스트', '(해당 없음, /' + prefixLen + ')');
+    }
+    html += kvRow('호스트 수', String(Math.max(0, hostCount)));
+    out.innerHTML = html;
+    setStatus('subnetStatus', '✓ 계산 완료', true);
+  } catch (e) {
+    out.innerHTML = '';
+    setStatus('subnetStatus', '✗ ' + e.message, false);
+  }
+}
+function convertMac() {
+  const raw = document.getElementById('macInput').value.trim();
+  const out = document.getElementById('macOut');
+  if (!raw) { out.innerHTML = ''; setStatus('macStatus', '', true); return; }
+  const hex = raw.replace(/[:\-.\s]/g, '');
+  if (!/^[0-9a-fA-F]{12}$/.test(hex)) {
+    out.innerHTML = '';
+    setStatus('macStatus', '✗ 12자리 16진수(MAC 48bit)로 인식할 수 없습니다.', false);
+    return;
+  }
+  const upper = hex.toUpperCase();
+  const lower = hex.toLowerCase();
+  const pairs = upper.match(/.{2}/g);
+  const colonU = pairs.join(':');
+  const colonL = lower.match(/.{2}/g).join(':');
+  const hyphenU = pairs.join('-');
+  const dotted = lower.match(/.{4}/g).join('.');
+  const dec = BigInt('0x' + hex).toString(10);
+  let html = '';
+  html += kvRow('콜론 (대문자)', colonU);
+  html += kvRow('콜론 (소문자)', colonL);
+  html += kvRow('하이픈', hyphenU);
+  html += kvRow('Cisco 점 표기', dotted);
+  html += kvRow('구분자 없음', upper);
+  html += kvRow('10진수 (48bit)', dec);
+  html += kvRow('16진수 (0x)', '0x' + upper);
+  out.innerHTML = html;
+  setStatus('macStatus', '✓ 변환 완료', true);
+}
+
+/* ===== 전압 분배기 ===== */
+function parseResistor(str) {
+  const s = String(str).trim().replace(/,/g, '');
+  const m = s.match(/^([0-9]*\.?[0-9]+)\s*([kKmM]?)\s*(?:[ΩΩohm]*)?$/);
+  if (!m) throw new Error('저항값을 인식할 수 없습니다 (예: 220, 4.7k, 1M)');
+  let val = parseFloat(m[1]);
+  if (m[2] === 'k' || m[2] === 'K') val *= 1e3;
+  if (m[2] === 'M') val *= 1e6;
+  if (m[2] === 'm') throw new Error('밀리옴(m) 단위는 지원하지 않습니다.');
+  if (!(val > 0)) throw new Error('저항값은 0보다 커야 합니다.');
+  return val;
+}
+function fmtOhm(v) {
+  if (v >= 1e6) return (v / 1e6).toFixed(v % 1e6 === 0 ? 0 : 2) + ' MΩ';
+  if (v >= 1e3) return (v / 1e3).toFixed(v % 1e3 === 0 ? 0 : 2) + ' kΩ';
+  return v.toFixed(v % 1 === 0 ? 0 : 2) + ' Ω';
+}
+function nearestE12(v) {
+  const E12 = [1.0,1.2,1.5,1.8,2.2,2.7,3.3,3.9,4.7,5.6,6.8,8.2];
+  const decade = Math.pow(10, Math.floor(Math.log10(v)));
+  let best = null, bestDiff = Infinity;
+  for (const mult of [decade / 10, decade, decade * 10]) {
+    for (const base of E12) {
+      const cand = base * mult;
+      const diff = Math.abs(cand - v);
+      if (diff < bestDiff) { bestDiff = diff; best = cand; }
+    }
+  }
+  return best;
+}
+function calcVoltageDivider() {
+  const out = document.getElementById('vdOut');
+  try {
+    const vin = parseFloat(document.getElementById('vdVin').value);
+    const r1 = parseResistor(document.getElementById('vdR1').value);
+    const r2 = parseResistor(document.getElementById('vdR2').value);
+    if (!(vin > 0) || isNaN(vin)) throw new Error('Vin은 0보다 커야 합니다.');
+    const vout = vin * r2 / (r1 + r2);
+    const i = vin / (r1 + r2);
+    const pTotal = vin * i;
+    const pR1 = i * i * r1;
+    const pR2 = i * i * r2;
+    let html = '';
+    html += kvRow('Vout', vout.toFixed(4) + ' V');
+    html += kvRow('분배비 (R2/(R1+R2))', (r2 / (r1 + r2)).toFixed(4));
+    html += kvRow('전류 I', (i * 1000).toFixed(4) + ' mA');
+    html += kvRow('총 소비전력', (pTotal * 1000).toFixed(3) + ' mW');
+    html += kvRow('R1 소비전력', (pR1 * 1000).toFixed(3) + ' mW');
+    html += kvRow('R2 소비전력', (pR2 * 1000).toFixed(3) + ' mW');
+    out.innerHTML = html;
+    setStatus('vdStatus', '✓ 계산 완료', true);
+  } catch (e) {
+    out.innerHTML = '';
+    setStatus('vdStatus', '✗ ' + e.message, false);
+  }
+}
+function calcVoltageDividerReverse() {
+  const out = document.getElementById('vdrOut');
+  try {
+    const vin = parseFloat(document.getElementById('vdrVin').value);
+    const vout = parseFloat(document.getElementById('vdrVout').value);
+    const known = parseResistor(document.getElementById('vdrKnownValue').value);
+    const which = document.getElementById('vdrKnownWhich').value;
+    if (!(vin > 0) || isNaN(vin)) throw new Error('Vin은 0보다 커야 합니다.');
+    if (!(vout > 0) || isNaN(vout)) throw new Error('목표 Vout은 0보다 커야 합니다.');
+    if (vout >= vin) throw new Error('목표 Vout은 Vin보다 작아야 합니다.');
+    let result, label;
+    if (which === 'r1') {
+      result = vout * known / (vin - vout);
+      label = 'R2 (GND측)';
+    } else {
+      result = known * (vin - vout) / vout;
+      label = 'R1 (Vin측)';
+    }
+    const nearest = nearestE12(result);
+    let html = '';
+    html += kvRow(label + ' 계산값', fmtOhm(result));
+    html += kvRow('가장 가까운 E12 값', fmtOhm(nearest));
+    const i = vin / (which === 'r1' ? known + result : result + known);
+    html += kvRow('예상 전류', (i * 1000).toFixed(4) + ' mA');
+    out.innerHTML = html;
+    setStatus('vdrStatus', '✓ 계산 완료', true);
+  } catch (e) {
+    out.innerHTML = '';
+    setStatus('vdrStatus', '✗ ' + e.message, false);
+  }
+}
+
 /* Init */
 renderAsciiTable();
 toggleEncA2uMode();
+calcSubnet();
+calcVoltageDivider();
+calcVoltageDividerReverse();
 </script>
 </body>
 </html>
