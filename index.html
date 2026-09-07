@@ -567,6 +567,7 @@
         <h3>디코딩 결과 <button class="copy-btn" onclick="copyText('b64DecodeOutput')">복사</button></h3>
         <textarea id="b64DecodeOutput" readonly></textarea>
         <div id="b64DecodeInfo" class="hint"></div>
+        <p class="hint">Base64 알파벳(A-Z a-z 0-9 + /)이 아닌 문자를 만나면 그 지점에서 잘라 디코딩합니다 (임베디드 base64.hpp의 <code>decode_base64_length</code>와 동일한 동작 — 패딩 <code>=</code> 유무나 뒤에 붙은 개행·잡음에 관계없이 디코딩됨).</p>
       </div>
     </div>
   </section>
@@ -794,10 +795,11 @@
         <div class="base-grid" style="margin-top:10px;">
           <label for="aesEncKey">키</label>
           <div style="display:flex;gap:6px;">
-            <input type="text" id="aesEncKey" placeholder="16/24/32바이트 (hex 또는 base64)" oninput="aesEncrypt()" style="flex:1;" />
+            <input type="text" id="aesEncKey" placeholder="16/24/32바이트 (hex, base64, 또는 ASCII 텍스트)" oninput="aesEncrypt()" style="flex:1;" />
             <select id="aesEncKeyFmt" onchange="aesEncrypt()" style="width:auto;">
               <option value="hex">Hex</option>
               <option value="base64">Base64</option>
+              <option value="ascii">ASCII 텍스트</option>
             </select>
           </div>
           <label for="aesEncKeyLen">랜덤 키 생성</label>
@@ -811,10 +813,11 @@
           </div>
           <label for="aesEncIv">IV</label>
           <div style="display:flex;gap:6px;">
-            <input type="text" id="aesEncIv" placeholder="16바이트 (hex 또는 base64)" oninput="aesEncrypt()" style="flex:1;" />
+            <input type="text" id="aesEncIv" placeholder="16바이트 (hex, base64, 또는 ASCII 텍스트)" oninput="aesEncrypt()" style="flex:1;" />
             <select id="aesEncIvFmt" onchange="aesEncrypt()" style="width:auto;">
               <option value="hex">Hex</option>
               <option value="base64">Base64</option>
+              <option value="ascii">ASCII 텍스트</option>
             </select>
           </div>
           <label></label>
@@ -830,7 +833,7 @@
           <button class="secondary" onclick="clearAesEncrypt()">지우기</button>
         </div>
         <div id="aesEncStatus" class="status"></div>
-        <p class="hint">AES-CBC + PKCS#7 패딩으로 암호화합니다. 브라우저 내장 Web Crypto API(SubtleCrypto)를 사용해 처리하므로 데이터가 외부로 전송되지 않습니다.</p>
+        <p class="hint">AES-CBC + PKCS#7(=CMS) 패딩으로 암호화합니다. 브라우저 내장 Web Crypto API(SubtleCrypto)를 사용해 처리하므로 데이터가 외부로 전송되지 않습니다. <b>ASCII 텍스트</b> 형식은 <code>byte aes_key[] = {'1','2',...}</code> 처럼 문자 리터럴로 키를 선언하는 Arduino/AESLib류 임베디드 코드와 호환하기 위한 옵션입니다 (문자 1개 = 1바이트).</p>
       </div>
       <div class="card">
         <h3>암호화 결과 <button class="copy-btn" onclick="copyText('aesEncOutput')">복사</button></h3>
@@ -854,18 +857,20 @@
           </select>
           <label for="aesDecKey">키</label>
           <div style="display:flex;gap:6px;">
-            <input type="text" id="aesDecKey" placeholder="16/24/32바이트 (hex 또는 base64)" oninput="aesDecrypt()" style="flex:1;" />
+            <input type="text" id="aesDecKey" placeholder="16/24/32바이트 (hex, base64, 또는 ASCII 텍스트)" oninput="aesDecrypt()" style="flex:1;" />
             <select id="aesDecKeyFmt" onchange="aesDecrypt()" style="width:auto;">
               <option value="hex">Hex</option>
               <option value="base64">Base64</option>
+              <option value="ascii">ASCII 텍스트</option>
             </select>
           </div>
           <label for="aesDecIv">IV</label>
           <div style="display:flex;gap:6px;">
-            <input type="text" id="aesDecIv" placeholder="16바이트 (hex 또는 base64)" oninput="aesDecrypt()" style="flex:1;" />
+            <input type="text" id="aesDecIv" placeholder="16바이트 (hex, base64, 또는 ASCII 텍스트)" oninput="aesDecrypt()" style="flex:1;" />
             <select id="aesDecIvFmt" onchange="aesDecrypt()" style="width:auto;">
               <option value="hex">Hex</option>
               <option value="base64">Base64</option>
+              <option value="ascii">ASCII 텍스트</option>
             </select>
           </div>
         </div>
@@ -1464,7 +1469,11 @@ function strToBase64(str) {
   return btoa(bin);
 }
 function base64ToStr(b64) {
+  // 임베디드(base64.hpp)의 decode_base64_length 와 동일하게 동작:
+  // base64 알파벳(A-Z a-z 0-9 + /)이 아닌 첫 문자(= 포함)를 만나면 그 지점에서 끊고 디코딩한다.
   let s = b64.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
+  const cut = s.search(/[^A-Za-z0-9+/]/);
+  if (cut !== -1) s = s.slice(0, cut);
   while (s.length % 4) s += '=';
   const bin = atob(s);
   const bytes = new Uint8Array(bin.length);
@@ -2108,8 +2117,19 @@ function base64ToBytesRaw(b64) {
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes;
 }
+function asciiToBytes(str) {
+  const bytes = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code > 255) throw new Error(`ASCII 텍스트에 1바이트로 표현할 수 없는 문자가 있습니다 ("${str[i]}").`);
+    bytes[i] = code;
+  }
+  return bytes;
+}
 function parseBytesByFormat(str, format) {
-  return format === 'hex' ? hexToBytes(str) : base64ToBytesRaw(str);
+  if (format === 'hex') return hexToBytes(str);
+  if (format === 'ascii') return asciiToBytes(str);
+  return base64ToBytesRaw(str);
 }
 function formatBytes(bytes, format) {
   return format === 'hex' ? bytesToHex(bytes) : bytesToBase64(bytes);
