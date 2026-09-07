@@ -296,6 +296,10 @@
         <div class="name">전압 분배기</div>
         <div class="desc">Vout/전류/전력 계산, 목표 전압에 필요한 저항값 역산</div>
       </div>
+      <div class="tool-card" data-tool="aes" style="--accent-color:#818cf8;">
+        <div class="name">AES-CBC</div>
+        <div class="desc">텍스트 AES-CBC 암호화/복호화, 키·IV 랜덤 생성 지원</div>
+      </div>
     </div>
   </section>
 
@@ -781,6 +785,104 @@
     </div>
   </section>
 
+  <!-- AES-CBC -->
+  <section class="panel" id="panel-aes">
+    <div class="grid-2">
+      <div class="card">
+        <h3>암호화 입력 <span class="badge">plaintext → ciphertext</span></h3>
+        <textarea id="aesEncInput" placeholder="암호화할 평문을 입력하세요" oninput="aesEncrypt()"></textarea>
+        <div class="base-grid" style="margin-top:10px;">
+          <label for="aesEncKey">키</label>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="aesEncKey" placeholder="16/24/32바이트 (hex 또는 base64)" oninput="aesEncrypt()" style="flex:1;" />
+            <select id="aesEncKeyFmt" onchange="aesEncrypt()" style="width:auto;">
+              <option value="hex">Hex</option>
+              <option value="base64">Base64</option>
+            </select>
+          </div>
+          <label for="aesEncKeyLen">랜덤 키 생성</label>
+          <div style="display:flex;gap:6px;">
+            <select id="aesEncKeyLen" style="width:auto;">
+              <option value="128">AES-128</option>
+              <option value="192">AES-192</option>
+              <option value="256" selected>AES-256</option>
+            </select>
+            <button class="secondary" type="button" onclick="genAesKey()">생성</button>
+          </div>
+          <label for="aesEncIv">IV</label>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="aesEncIv" placeholder="16바이트 (hex 또는 base64)" oninput="aesEncrypt()" style="flex:1;" />
+            <select id="aesEncIvFmt" onchange="aesEncrypt()" style="width:auto;">
+              <option value="hex">Hex</option>
+              <option value="base64">Base64</option>
+            </select>
+          </div>
+          <label></label>
+          <button class="secondary" type="button" style="width:fit-content;" onclick="genAesIv()">랜덤 IV 생성</button>
+          <label for="aesEncOutFmt">출력 형식</label>
+          <select id="aesEncOutFmt" onchange="aesEncrypt()">
+            <option value="base64">Base64</option>
+            <option value="hex">Hex</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button class="action" onclick="aesEncrypt()">암호화</button>
+          <button class="secondary" onclick="clearAesEncrypt()">지우기</button>
+        </div>
+        <div id="aesEncStatus" class="status"></div>
+        <p class="hint">AES-CBC + PKCS#7 패딩으로 암호화합니다. 브라우저 내장 Web Crypto API(SubtleCrypto)를 사용해 처리하므로 데이터가 외부로 전송되지 않습니다.</p>
+      </div>
+      <div class="card">
+        <h3>암호화 결과 <button class="copy-btn" onclick="copyText('aesEncOutput')">복사</button></h3>
+        <textarea id="aesEncOutput" readonly></textarea>
+        <div class="btn-row">
+          <button class="secondary" onclick="fillDecryptFromEncrypt()">↓ 복호화 입력으로 채우기</button>
+        </div>
+        <p class="hint">복호화하려면 여기서 사용한 <b>키</b>와 <b>IV</b>가 그대로 필요합니다. 안전한 곳에 따로 보관하세요.</p>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="card">
+        <h3>복호화 입력 <span class="badge">ciphertext → plaintext</span></h3>
+        <textarea id="aesDecInput" placeholder="복호화할 암호문을 입력하세요" oninput="aesDecrypt()"></textarea>
+        <div class="base-grid" style="margin-top:10px;">
+          <label for="aesDecInFmt">입력 형식</label>
+          <select id="aesDecInFmt" onchange="aesDecrypt()">
+            <option value="base64">Base64</option>
+            <option value="hex">Hex</option>
+          </select>
+          <label for="aesDecKey">키</label>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="aesDecKey" placeholder="16/24/32바이트 (hex 또는 base64)" oninput="aesDecrypt()" style="flex:1;" />
+            <select id="aesDecKeyFmt" onchange="aesDecrypt()" style="width:auto;">
+              <option value="hex">Hex</option>
+              <option value="base64">Base64</option>
+            </select>
+          </div>
+          <label for="aesDecIv">IV</label>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="aesDecIv" placeholder="16바이트 (hex 또는 base64)" oninput="aesDecrypt()" style="flex:1;" />
+            <select id="aesDecIvFmt" onchange="aesDecrypt()" style="width:auto;">
+              <option value="hex">Hex</option>
+              <option value="base64">Base64</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="action" onclick="aesDecrypt()">복호화</button>
+          <button class="secondary" onclick="clearAesDecrypt()">지우기</button>
+        </div>
+        <div id="aesDecStatus" class="status"></div>
+      </div>
+      <div class="card">
+        <h3>복호화 결과 <button class="copy-btn" onclick="copyText('aesDecOutput')">복사</button></h3>
+        <textarea id="aesDecOutput" readonly></textarea>
+        <p class="hint">평문이 UTF-8 텍스트가 아니라면 일부 문자가 깨져 보일 수 있습니다. 키/IV가 틀리거나 데이터가 손상되면 복호화가 실패합니다.</p>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <script>
@@ -797,6 +899,7 @@ const TOOLS = [
   { id: 'checksum', name: '체크섬 / CRC', color: '#34d399' },
   { id: 'netaddr',  name: 'MAC / IP 변환', color: '#60a5fa' },
   { id: 'voltage',  name: '전압 분배기', color: '#facc15' },
+  { id: 'aes',      name: 'AES-CBC', color: '#818cf8' },
 ];
 
 function showPanel(id) {
@@ -1986,6 +2089,115 @@ function calcVoltageDividerReverse() {
     out.innerHTML = '';
     setStatus('vdrStatus', '✗ ' + e.message, false);
   }
+}
+
+/* ===== AES-CBC ===== */
+function bytesToHex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function bytesToBase64(bytes) {
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+function base64ToBytesRaw(b64) {
+  let s = b64.trim().replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
+  while (s.length % 4) s += '=';
+  const bin = atob(s);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+function parseBytesByFormat(str, format) {
+  return format === 'hex' ? hexToBytes(str) : base64ToBytesRaw(str);
+}
+function formatBytes(bytes, format) {
+  return format === 'hex' ? bytesToHex(bytes) : bytesToBase64(bytes);
+}
+function randomBytesHex(len) {
+  const b = new Uint8Array(len);
+  crypto.getRandomValues(b);
+  return bytesToHex(b);
+}
+function genAesKey() {
+  const bits = document.getElementById('aesEncKeyLen').value;
+  document.getElementById('aesEncKeyFmt').value = 'hex';
+  document.getElementById('aesEncKey').value = randomBytesHex(Number(bits) / 8);
+  aesEncrypt();
+}
+function genAesIv() {
+  document.getElementById('aesEncIvFmt').value = 'hex';
+  document.getElementById('aesEncIv').value = randomBytesHex(16);
+  aesEncrypt();
+}
+async function aesEncrypt() {
+  const outEl = document.getElementById('aesEncOutput');
+  try {
+    const plainStr = document.getElementById('aesEncInput').value;
+    const keyStr = document.getElementById('aesEncKey').value.trim();
+    const ivStr = document.getElementById('aesEncIv').value.trim();
+    if (!plainStr || !keyStr || !ivStr) {
+      outEl.value = '';
+      setStatus('aesEncStatus', plainStr ? '키와 IV를 입력하세요 (랜덤 생성 버튼을 써도 됩니다).' : '', plainStr ? false : true);
+      return;
+    }
+    if (!window.crypto || !window.crypto.subtle) throw new Error('이 브라우저/환경에서는 Web Crypto API를 사용할 수 없습니다.');
+    const keyBytes = parseBytesByFormat(keyStr, document.getElementById('aesEncKeyFmt').value);
+    const ivBytes = parseBytesByFormat(ivStr, document.getElementById('aesEncIvFmt').value);
+    if (![16, 24, 32].includes(keyBytes.length)) throw new Error(`키 길이는 16/24/32바이트(AES-128/192/256)여야 합니다. 현재 ${keyBytes.length}바이트`);
+    if (ivBytes.length !== 16) throw new Error(`IV는 16바이트여야 합니다. 현재 ${ivBytes.length}바이트`);
+    const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, { name: 'AES-CBC' }, false, ['encrypt']);
+    const cipherBuf = await crypto.subtle.encrypt({ name: 'AES-CBC', iv: ivBytes }, cryptoKey, new TextEncoder().encode(plainStr));
+    const cipherBytes = new Uint8Array(cipherBuf);
+    outEl.value = formatBytes(cipherBytes, document.getElementById('aesEncOutFmt').value);
+    setStatus('aesEncStatus', `✓ AES-${keyBytes.length * 8} 암호화 완료 (${cipherBytes.length} bytes)`, true);
+  } catch (e) {
+    outEl.value = '';
+    setStatus('aesEncStatus', '✗ ' + e.message, false);
+  }
+}
+function clearAesEncrypt() {
+  ['aesEncInput', 'aesEncKey', 'aesEncIv', 'aesEncOutput'].forEach(id => document.getElementById(id).value = '');
+  setStatus('aesEncStatus', '', true);
+}
+async function aesDecrypt() {
+  const outEl = document.getElementById('aesDecOutput');
+  try {
+    const cipherStr = document.getElementById('aesDecInput').value.trim();
+    const keyStr = document.getElementById('aesDecKey').value.trim();
+    const ivStr = document.getElementById('aesDecIv').value.trim();
+    if (!cipherStr || !keyStr || !ivStr) {
+      outEl.value = '';
+      setStatus('aesDecStatus', cipherStr ? '키와 IV를 입력하세요.' : '', cipherStr ? false : true);
+      return;
+    }
+    if (!window.crypto || !window.crypto.subtle) throw new Error('이 브라우저/환경에서는 Web Crypto API를 사용할 수 없습니다.');
+    const keyBytes = parseBytesByFormat(keyStr, document.getElementById('aesDecKeyFmt').value);
+    const ivBytes = parseBytesByFormat(ivStr, document.getElementById('aesDecIvFmt').value);
+    const cipherBytes = parseBytesByFormat(cipherStr, document.getElementById('aesDecInFmt').value);
+    if (![16, 24, 32].includes(keyBytes.length)) throw new Error(`키 길이는 16/24/32바이트(AES-128/192/256)여야 합니다. 현재 ${keyBytes.length}바이트`);
+    if (ivBytes.length !== 16) throw new Error(`IV는 16바이트여야 합니다. 현재 ${ivBytes.length}바이트`);
+    const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, { name: 'AES-CBC' }, false, ['decrypt']);
+    const plainBuf = await crypto.subtle.decrypt({ name: 'AES-CBC', iv: ivBytes }, cryptoKey, cipherBytes);
+    outEl.value = new TextDecoder('utf-8', { fatal: false }).decode(plainBuf);
+    setStatus('aesDecStatus', '✓ 복호화 완료', true);
+  } catch (e) {
+    outEl.value = '';
+    setStatus('aesDecStatus', '✗ 복호화 실패 — 키/IV/암호문을 확인하세요. (' + e.message + ')', false);
+  }
+}
+function clearAesDecrypt() {
+  ['aesDecInput', 'aesDecKey', 'aesDecIv', 'aesDecOutput'].forEach(id => document.getElementById(id).value = '');
+  setStatus('aesDecStatus', '', true);
+}
+function fillDecryptFromEncrypt() {
+  document.getElementById('aesDecInput').value = document.getElementById('aesEncOutput').value;
+  document.getElementById('aesDecInFmt').value = document.getElementById('aesEncOutFmt').value;
+  document.getElementById('aesDecKey').value = document.getElementById('aesEncKey').value;
+  document.getElementById('aesDecKeyFmt').value = document.getElementById('aesEncKeyFmt').value;
+  document.getElementById('aesDecIv').value = document.getElementById('aesEncIv').value;
+  document.getElementById('aesDecIvFmt').value = document.getElementById('aesEncIvFmt').value;
+  aesDecrypt();
 }
 
 /* Init */
