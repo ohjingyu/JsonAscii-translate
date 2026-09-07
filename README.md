@@ -43,6 +43,7 @@ JSON 정렬, Base64 변환, 진수 계산처럼 자잘하지만 자주 필요한
 git clone https://github.com/ohjingyu/JsonAscii-translate.git
 cd JsonAscii-translate
 open index.html   # 또는 브라우저에서 파일을 직접 드래그해서 열기
+https://jsontranslate.kyeong0644.workers.dev/# #인터넷 접속 링크
 ```
 
 정적 호스팅에 그대로 올려도 동작합니다 (Cloudflare Pages, GitHub Pages, Vercel 등).
