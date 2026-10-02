@@ -300,6 +300,10 @@
         <div class="name">AES-CBC</div>
         <div class="desc">텍스트 AES-CBC 암호화/복호화, 키·IV 랜덤 생성 지원</div>
       </div>
+      <div class="tool-card" data-tool="tobe" style="--accent-color:#fb7185;">
+        <div class="name">투비 암호화/복호화</div>
+        <div class="desc">AESLib 기반 임베디드 기기 API 통신 방식과 동일한 AES-CBC 암복호화</div>
+      </div>
     </div>
   </section>
 
@@ -888,6 +892,78 @@
     </div>
   </section>
 
+  <!-- 투비 암호화/복호화 -->
+  <section class="panel" id="panel-tobe">
+    <p class="hint" style="margin-top:0;">AESLib 기반 임베디드 기기(투비 입퇴실기)가 API 통신에 사용하는 방식과 동일하게 동작합니다: <b>AES-CBC + PKCS#7(CMS) 패딩</b>, 키/IV는 <b>ASCII 문자열 그대로</b> 바이트로 사용, 암호문은 <b>표준 Base64</b>로 인코딩됩니다. 키·IV는 저장되지 않으니 실제 기기 값은 직접 입력해서 사용하세요.</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>암호화 입력 <span class="badge">plaintext → 투비 암호문</span></h3>
+        <textarea id="tobeEncInput" placeholder='예) {"userid":"test","password":"1234"}'></textarea>
+        <div class="base-grid" style="margin-top:10px;">
+          <label for="tobeEncKey">키</label>
+          <input type="text" id="tobeEncKey" placeholder="ASCII 16/24/32자 (예: 기기 설정의 aes_key)" oninput="tobeEncrypt()" />
+          <label for="tobeEncIv">IV</label>
+          <input type="text" id="tobeEncIv" placeholder="ASCII 16자 (예: 기기 설정의 def_iv)" oninput="tobeEncrypt()" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--muted);font-size:0.85rem;">
+          <input type="checkbox" id="tobeEncSameIv" style="width:auto;" onchange="tobeEncSyncIv()" />
+          키와 동일한 값을 IV로 사용 (이 기기의 기본 설정과 동일)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:6px;color:var(--muted);font-size:0.85rem;">
+          <input type="checkbox" id="tobeEncUrlEncode" style="width:auto;" onchange="tobeEncrypt()" />
+          URL 인코딩 적용 (POST 전송 시 <code>data=</code> 파라미터 형식)
+        </label>
+        <div class="btn-row">
+          <button class="action" onclick="tobeEncrypt()">암호화</button>
+          <button class="secondary" onclick="clearTobeEncrypt()">지우기</button>
+        </div>
+        <div id="tobeEncStatus" class="status"></div>
+      </div>
+      <div class="card">
+        <h3>암호화 결과 <button class="copy-btn" onclick="copyText('tobeEncOutput')">복사</button></h3>
+        <textarea id="tobeEncOutput" readonly></textarea>
+        <div class="btn-row">
+          <button class="secondary" onclick="fillTobeDecryptFromEncrypt()">↓ 복호화 입력으로 채우기</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="card">
+        <h3>복호화 입력 <span class="badge">투비 암호문 → plaintext</span></h3>
+        <textarea id="tobeDecInput" placeholder="JSON 응답의 data 필드 값(Base64)을 입력하세요"></textarea>
+        <div class="base-grid" style="margin-top:10px;">
+          <label for="tobeDecKey">키</label>
+          <input type="text" id="tobeDecKey" placeholder="ASCII 16/24/32자" oninput="tobeDecrypt()" />
+          <label for="tobeDecIv">IV</label>
+          <input type="text" id="tobeDecIv" placeholder="ASCII 16자" oninput="tobeDecrypt()" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--muted);font-size:0.85rem;">
+          <input type="checkbox" id="tobeDecSameIv" style="width:auto;" onchange="tobeDecSyncIv()" />
+          키와 동일한 값을 IV로 사용
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:6px;color:var(--muted);font-size:0.85rem;">
+          <input type="checkbox" id="tobeDecUrlDecode" style="width:auto;" onchange="tobeDecrypt()" />
+          입력을 URL 디코딩 먼저 적용 (POST 원본(<code>data=...</code>)을 그대로 붙여넣은 경우)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:6px;color:var(--muted);font-size:0.85rem;">
+          <input type="checkbox" id="tobeDecTrimBrace" style="width:auto;" checked onchange="tobeDecrypt()" />
+          마지막 <code>}</code> 까지만 사용 (기기 펌웨어의 JSON 응답 처리 방식과 동일)
+        </label>
+        <div class="btn-row">
+          <button class="action" onclick="tobeDecrypt()">복호화</button>
+          <button class="secondary" onclick="clearTobeDecrypt()">지우기</button>
+        </div>
+        <div id="tobeDecStatus" class="status"></div>
+      </div>
+      <div class="card">
+        <h3>복호화 결과 <button class="copy-btn" onclick="copyText('tobeDecOutput')">복사</button></h3>
+        <textarea id="tobeDecOutput" readonly></textarea>
+        <p class="hint">키/IV가 틀리거나 데이터가 손상되면 복호화가 실패합니다.</p>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <script>
@@ -905,6 +981,7 @@ const TOOLS = [
   { id: 'netaddr',  name: 'MAC / IP 변환', color: '#60a5fa' },
   { id: 'voltage',  name: '전압 분배기', color: '#facc15' },
   { id: 'aes',      name: 'AES-CBC', color: '#818cf8' },
+  { id: 'tobe',     name: '투비 암호화/복호화', color: '#fb7185' },
 ];
 
 function showPanel(id) {
@@ -2218,6 +2295,120 @@ function fillDecryptFromEncrypt() {
   document.getElementById('aesDecIv').value = document.getElementById('aesEncIv').value;
   document.getElementById('aesDecIvFmt').value = document.getElementById('aesEncIvFmt').value;
   aesDecrypt();
+}
+
+/* ===== 투비 암호화/복호화 (AESLib 호환) ===== */
+function tobeUrlEncode(str) {
+  // 업로드된 펌웨어의 커스텀 urlencode() 함수와 동일한 규칙: 영숫자 통과, 공백→'+', 그 외는 %XX(대문자)
+  let out = '';
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if (c === ' ') out += '+';
+    else if (/[A-Za-z0-9]/.test(c)) out += c;
+    else out += '%' + str.charCodeAt(i).toString(16).toUpperCase().padStart(2, '0');
+  }
+  return out;
+}
+function tobeUrlDecode(str) {
+  return decodeURIComponent(str.trim().replace(/\+/g, ' '));
+}
+function tobeEncSyncIv() {
+  if (document.getElementById('tobeEncSameIv').checked) {
+    document.getElementById('tobeEncIv').value = document.getElementById('tobeEncKey').value;
+  }
+  tobeEncrypt();
+}
+function tobeDecSyncIv() {
+  if (document.getElementById('tobeDecSameIv').checked) {
+    document.getElementById('tobeDecIv').value = document.getElementById('tobeDecKey').value;
+  }
+  tobeDecrypt();
+}
+async function tobeEncrypt() {
+  const outEl = document.getElementById('tobeEncOutput');
+  try {
+    if (document.getElementById('tobeEncSameIv').checked) {
+      document.getElementById('tobeEncIv').value = document.getElementById('tobeEncKey').value;
+    }
+    const plainStr = document.getElementById('tobeEncInput').value;
+    const keyStr = document.getElementById('tobeEncKey').value;
+    const ivStr = document.getElementById('tobeEncIv').value;
+    if (!plainStr || !keyStr || !ivStr) {
+      outEl.value = '';
+      setStatus('tobeEncStatus', plainStr ? '키와 IV를 입력하세요.' : '', plainStr ? false : true);
+      return;
+    }
+    if (!window.crypto || !window.crypto.subtle) throw new Error('이 브라우저/환경에서는 Web Crypto API를 사용할 수 없습니다.');
+    const keyBytes = asciiToBytes(keyStr);
+    const ivBytes = asciiToBytes(ivStr);
+    if (![16, 24, 32].includes(keyBytes.length)) throw new Error(`키는 ASCII 16/24/32자(AES-128/192/256)여야 합니다. 현재 ${keyBytes.length}자`);
+    if (ivBytes.length !== 16) throw new Error(`IV는 ASCII 16자여야 합니다. 현재 ${ivBytes.length}자`);
+    const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, { name: 'AES-CBC' }, false, ['encrypt']);
+    const cipherBuf = await crypto.subtle.encrypt({ name: 'AES-CBC', iv: ivBytes }, cryptoKey, new TextEncoder().encode(plainStr));
+    let b64 = bytesToBase64(new Uint8Array(cipherBuf));
+    if (document.getElementById('tobeEncUrlEncode').checked) b64 = tobeUrlEncode(b64);
+    outEl.value = b64;
+    setStatus('tobeEncStatus', `✓ AES-${keyBytes.length * 8} 암호화 완료`, true);
+  } catch (e) {
+    outEl.value = '';
+    setStatus('tobeEncStatus', '✗ ' + e.message, false);
+  }
+}
+function clearTobeEncrypt() {
+  ['tobeEncInput', 'tobeEncKey', 'tobeEncIv', 'tobeEncOutput'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tobeEncSameIv').checked = false;
+  document.getElementById('tobeEncUrlEncode').checked = false;
+  setStatus('tobeEncStatus', '', true);
+}
+async function tobeDecrypt() {
+  const outEl = document.getElementById('tobeDecOutput');
+  try {
+    if (document.getElementById('tobeDecSameIv').checked) {
+      document.getElementById('tobeDecIv').value = document.getElementById('tobeDecKey').value;
+    }
+    let cipherStr = document.getElementById('tobeDecInput').value.trim();
+    const keyStr = document.getElementById('tobeDecKey').value;
+    const ivStr = document.getElementById('tobeDecIv').value;
+    if (!cipherStr || !keyStr || !ivStr) {
+      outEl.value = '';
+      setStatus('tobeDecStatus', cipherStr ? '키와 IV를 입력하세요.' : '', cipherStr ? false : true);
+      return;
+    }
+    if (!window.crypto || !window.crypto.subtle) throw new Error('이 브라우저/환경에서는 Web Crypto API를 사용할 수 없습니다.');
+    if (document.getElementById('tobeDecUrlDecode').checked) cipherStr = tobeUrlDecode(cipherStr);
+    const keyBytes = asciiToBytes(keyStr);
+    const ivBytes = asciiToBytes(ivStr);
+    if (![16, 24, 32].includes(keyBytes.length)) throw new Error(`키는 ASCII 16/24/32자(AES-128/192/256)여야 합니다. 현재 ${keyBytes.length}자`);
+    if (ivBytes.length !== 16) throw new Error(`IV는 ASCII 16자여야 합니다. 현재 ${ivBytes.length}자`);
+    const cipherBytes = base64ToBytesRaw(cipherStr);
+    const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, { name: 'AES-CBC' }, false, ['decrypt']);
+    const plainBuf = await crypto.subtle.decrypt({ name: 'AES-CBC', iv: ivBytes }, cryptoKey, cipherBytes);
+    let plainStr = new TextDecoder('utf-8', { fatal: false }).decode(plainBuf);
+    if (document.getElementById('tobeDecTrimBrace').checked) {
+      const idx = plainStr.lastIndexOf('}');
+      if (idx !== -1) plainStr = plainStr.substring(0, idx + 1);
+    }
+    outEl.value = plainStr;
+    setStatus('tobeDecStatus', '✓ 복호화 완료', true);
+  } catch (e) {
+    outEl.value = '';
+    setStatus('tobeDecStatus', '✗ 복호화 실패 — 키/IV/암호문을 확인하세요. (' + e.message + ')', false);
+  }
+}
+function clearTobeDecrypt() {
+  ['tobeDecInput', 'tobeDecKey', 'tobeDecIv', 'tobeDecOutput'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tobeDecSameIv').checked = false;
+  document.getElementById('tobeDecUrlDecode').checked = false;
+  setStatus('tobeDecStatus', '', true);
+}
+function fillTobeDecryptFromEncrypt() {
+  document.getElementById('tobeDecInput').value = document.getElementById('tobeEncOutput').value;
+  document.getElementById('tobeDecKey').value = document.getElementById('tobeEncKey').value;
+  document.getElementById('tobeDecIv').value = document.getElementById('tobeEncIv').value;
+  if (document.getElementById('tobeEncUrlEncode').checked) {
+    document.getElementById('tobeDecUrlDecode').checked = true;
+  }
+  tobeDecrypt();
 }
 
 /* Init */
